@@ -1,4 +1,8 @@
 #!/bin/bash
+# wlan0 - Depende como é identificado o dispositivo WiFi pelo Linux.
+# eth0 - Depende como é identificado o dispositivo Ethernet pelo Linux.
+# Para saber digite no terminal o comando: ifconfig
+# Caso sejam diferentes: altere.
 
 service hostapd stop
 service dnsmasq stop
