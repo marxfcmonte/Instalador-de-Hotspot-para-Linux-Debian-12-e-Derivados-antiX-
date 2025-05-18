@@ -18,12 +18,17 @@ service dnsmasq start
 
 service hostapd stop
 
+# wlan0 - Depende como é identificado o dispositivo WiFi pelo Linux.
+# eth0 - Depende como é identificado o dispositivo Ethernet pelo Linux.
+# Para saber digite no terminal o comando: ifconfig
+# Caso sejam diferentes: altere.
+
 ifconfig wlan0 up
 ifconfig wlan0 192.168.137.1/24
 
 iptables -t nat -F
 iptables -F 
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE 
 iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 
@@ -32,14 +37,14 @@ interface=wlan0
 driver=nl80211
 channel=1
 
-ssid=MARX-MONTE-J1800
+ssid=Nome-Da-Rede-WiFi
 wpa=2
-wpa_passphrase=marx8401
+wpa_passphrase=Senha-da-rede-WiFi
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=CCMP
-# Change the broadcasted/multicasted keys after this many seconds.
+# Altera as chaves transmitidas/multidifundidas após esse número de segundos.
 wpa_group_rekey=600
-# Change the master key after this many seconds. Master key is used as a basis
+# Troca a chave mestra após esse número de segundos. A chave mestra é usada como base.
 wpa_gmk_rekey=86400
 
 EOF
