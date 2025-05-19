@@ -40,7 +40,7 @@ read senha
 
 echo ""
 
-if [ "$wifi"=="" ]; then
+if [ "$wifi" = "" ]; then
 	wifi="wlan0"
 	echo "O nome da interface de rede Wi-Fi (PADRÃO): $wifi"	
 else
@@ -48,7 +48,7 @@ else
 	echo "O nome da interface de rede Wi-Fi: $wifi"
 fi
 
-if [ "$rede"=="" ]; then
+if [ "$ethe" = "" ]; then
 	ethe="eth0"
 	echo "O nome da interface de rede Ethernet (PADRÃO): $ethe"
 else
@@ -215,7 +215,14 @@ chmod +x /usr/share/applications/RStar.desktop
 
 chmod +x /usr/share/applications/Stop.desktop
 
-cat /var/spool/cron/crontabs/root | grep -q "@reboot sudo /usr/share/Hotspot/Start.sh" && echo "As configurações no crontab estão atualizadas... " || echo "@reboot sudo /usr/share/Hotspot/Start.sh" >> /var/spool/cron/crontabs/root | echo "As configurações no crontab serão atualizadas..." 
+cat /var/spool/cron/crontabs/root | grep -q "@reboot sudo /usr/share/Hotspot/Start.sh"
+
+if [ "$?" = "1" ]; then
+	echo "As configurações no crontab serão atualizadas..." 
+	echo "@reboot sudo /usr/share/Hotspot/Start.sh" >> /var/spool/cron/crontabs/root
+else
+	echo "As configurações no crontab estão atualizadas... "
+fi
 
 sleep 2
 
