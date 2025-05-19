@@ -42,9 +42,9 @@ interface=wlan0
 driver=nl80211
 channel=1
 
-ssid=MARX-MONTE-J1800
+ssid=NOME_DA_REDE_WI-FI
 wpa=2
-wpa_passphrase=marx8401
+wpa_passphrase=SENHA_DA_REDE_WI-FI
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=CCMP
 # Altera as chaves transmitidas/multidifundidas após esse número de segundos.
