@@ -1,10 +1,18 @@
 #!/bin/bash
 
+echo ""
+echo "Desenvolvido por Marx F. C. Monte"
+echo "Instalador de Hotspot v 1.5 (2025)"
+echo "Para a istribuição Debian 12 e derivados (antiX 23)"
+echo ""
+
 apt-get install -y hostapd dnsmasq wireless-tools iw wvdial
 
 service dnsmasq stop
 
 sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
+
+echo ""
 
 echo "Verifique o nome da interface de rede Ethernet"
 
