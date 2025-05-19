@@ -1,13 +1,65 @@
 #!/bin/bash
+
 apt-get install -y hostapd dnsmasq wireless-tools iw wvdial
 
 service dnsmasq stop
 
 sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 
+echo "Verifique o nome da interface de rede Ethernet"
+
+echo ""
+
+ip addr | grep "th"
+
+echo ""
+
+echo "Se o nome da interface de rede Ethernet é eth0 aperte 
+Enter para continuar, se não digite o nome da interface:"
+read ethe
+
+echo "Verifique o nome da interface de rede WiFi"
+
+echo ""
+
+ip addr | grep "lan"
+
+echo ""
+
+echo "Se o nome da interface de rede WiFi é wlan0 aperte 
+Enter para continuar, se não digite o nome da interface:"
+read wifi
+
+echo "Nome da rede Wi-Fi (SSID):"
+read rede
+
+echo ""
+
+echo "Senha da rede Wi-Fi:"
+read senha
+
+echo ""
+
+if [ "$wifi"=="" ]; then
+	wifi="wlan0"
+	echo "O nome da interface de rede Wi-Fi (PADRÃO): $wifi"	
+else
+	echo "O nome da interface de rede substituída com sucesso!"
+	echo "O nome da interface de rede Wi-Fi: $wifi"
+fi
+
+if [ "$rede"=="" ]; then
+	ethe="eth0"
+	echo "O nome da interface de rede Ethernet (PADRÃO): $ethe"
+else
+	echo "O nome da interface de rede substituída com sucesso!"
+	echo "O nome da interface de rede Etherne: $ethe"
+fi
+
+
 cat <<EOF > /etc/dnsmasq.conf
 log-facility=/var/log/dnsmasq.log
-interface=wlan0
+interface=$wifi
 dhcp-range=192.168.137.10,192.168.137.250,12h
 dhcp-option=3,192.168.137.1
 dhcp-option=6,192.168.137.1
@@ -18,33 +70,23 @@ service dnsmasq start
 
 service hostapd stop
 
-# Interface
-# O nome da interface de rede. Usualmente é um nome como 'eth0', 'wlan0', 'sl3' ou algo parecido: 
-# um nome de driver de dispositivo seguido por um número.
-# wlan0 - Depende como é identificado, o nome da interface de rede WiFi pelo Linux.
-# eth0 - Depende como é identificado, o nome da interface de rede Ethernet pelo Linux.
-# Para saber digite no terminal o comando: ifconfig
-# Caso sejam diferentes: altere onde aparecem em todo o arquivo para não houver erros na instalação.
-# Altere o 'ssid', nome da rede Wi-Fi, e 'wpa_passphrase', a senha da rede Wi-F.
-# NÃO ALTERE NADA ÁLEM DISSO SENÃO PODERÁ DANIFICAR O SISTEMA!!!
-
-ifconfig wlan0 up
-ifconfig wlan0 192.168.137.1/24
+ifconfig $wifi up
+ifconfig $wifi 192.168.137.1/24
 
 iptables -t nat -F
 iptables -F 
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
+iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 
 cat <<EOF > /etc/hostapd/hostapd.conf
-interface=wlan0
+interface=$wifi
 driver=nl80211
 channel=1
 
-ssid=NOME_DA_REDE_WI-FI
+ssid=$rede
 wpa=2
-wpa_passphrase=SENHA_DA_REDE_WI-FI
+wpa_passphrase=$senha
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=CCMP
 # Altera as chaves transmitidas/multidifundidas após esse número de segundos.
@@ -72,12 +114,12 @@ cat <<EOF > /usr/share/Hotspot/Start.sh
 service hostapd stop
 service dnsmasq stop
 sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
-ifconfig wlan0 up
-ifconfig wlan0 192.168.137.1/24
+ifconfig $wifi up
+ifconfig $wifi 192.168.137.1/24
 iptables -t nat -F
 iptables -F 
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
+iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 service hostapd start
 service dnsmasq start
@@ -93,12 +135,12 @@ cat <<EOF > /usr/share/Hotspot/RStar.sh
 service hostapd stop
 service dnsmasq stop
 sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
-ifconfig wlan0 up
-ifconfig wlan0 192.168.137.1/24
+ifconfig $wifi up
+ifconfig $wifi 192.168.137.1/24
 iptables -t nat -F
 iptables -F 
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
+iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 service hostapd start
 service dnsmasq start
@@ -180,4 +222,3 @@ sleep 2
 service hostapd start
 
 exit 0
-
