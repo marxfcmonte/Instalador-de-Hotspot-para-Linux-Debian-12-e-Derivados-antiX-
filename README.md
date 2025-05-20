@@ -5,4 +5,6 @@ Arquivos InstallHotspot.sh e o executável, InstallHotspot, executar no terminal
 Ele cria dois programas, um para reestart do hotspot, e o outro para parar o serviço de hotspot. Além disso, deixa o 
 serviço de hotspot com inicialização automática junto com a inicialização do sistema.
 
+Cria atalhos para a Área de trabalho e no meno dos aplicativos.
+
 Totalmente automatizado.
