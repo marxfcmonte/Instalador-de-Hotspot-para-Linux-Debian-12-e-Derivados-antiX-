@@ -304,7 +304,7 @@ EOF
 	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStar.desktop /usr/share/applications/Stop.desktop 
 	chmod +x /home/$SUDO_USER/Desktop/RStar.desktop /home/$SUDO_USER/Desktop/Stop.desktop
 	
-	cat <<EOF >  /etc/init.d/hotstop.sh
+	cat <<EOF >  /etc/init.d/hotstop
 #!/bin/sh
 
 ### BEGIN INIT INFO
@@ -326,34 +326,38 @@ case "\$1" in
   start)
 	sleep 3 
 	/usr/share/Hotspot/Start.sh
+	echo "Hotspot iniciado..." > /usr/share/Hotspot/hotspot.conf
 	;;
   stop)
 	/usr/share/Hotspot/Stop.sh
+	echo "Hotspot parado..." > /usr/share/Hotspot/hotspot.conf
 	;;
   restart)
 	/usr/share/Hotspot/RStar.sh
+	echo "Hotspot reiniciado..." > /usr/share/Hotspot/hotspot.conf
 	;;
   status)
-	echo "hotspot iniciado..."
+	cat /usr/share/Hotspot/hotspot.conf
 	;;
 esac
 
 exit 0
 
 EOF
-	update-rc.d hotstop.sh defaults
-	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop.sh"
+	chmod +x /etc/init.d/hotstop
+	update-rc.d hotstop defaults
+	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
 	
 	if [ "$?" = "1" ]; then
 		echo "As configurações serão atualizadas..." 
 		sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
-		echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop.sh" >> /etc/sudoers
+		echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" >> /etc/sudoers
 	else
 		echo "As configurações estão atualizadas..."
 	fi
 
 	service hostapd start
-	service hotstop.sh start
+	service hotstop start
 	
 
 elif [ "$opcao" = "2" ]; then
@@ -399,22 +403,12 @@ elif [ "$opcao" = "2" ]; then
 	else
 		echo "O arquivo não encontrado..."
 	fi
-	if [ -e "/tmp/connection.png" ]; then
-		rm /tmp/connection.png
-	else
-		echo "O arquivo não encontrado..."
-	fi
-	if [ -e "/tmp/hotspot.png" ]; then
-		rm /tmp/hotspot.png
-	else
-		echo "O arquivo não encontrado..."
-	fi
-	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop.sh"
+	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
 	if [ "$?" = "1" ]; then
 		echo "Configuração não encontrada..."
 	else
 		echo "A configuração será deletada... "
-		awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop.sh" '{print $1}' /etc/sudoers > /tmp/temp.txt
+		awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" '{print $1}' /etc/sudoers > /tmp/temp.txt
 		mv /tmp/temp.txt /etc/sudoers
 		echo "Os arquivos foram removidos..."
 	fi	 
