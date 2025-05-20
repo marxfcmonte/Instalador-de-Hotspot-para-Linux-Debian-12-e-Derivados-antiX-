@@ -2,7 +2,7 @@
 
 echo ""
 echo "Desenvolvido por Marx F. C. Monte"
-echo "Instalador de Hotspot v 1.5 (2025)"
+echo "Instalador de Hotspot v 1.6 (2025)"
 echo "Para a Distribuição Debian 12 e derivados (antiX 23)"
 echo ""
 
