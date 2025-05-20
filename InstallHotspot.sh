@@ -12,6 +12,8 @@ if [ "$USER" != "root" ]; then
 	exit 1	
 fi
 
+echo $XDG_DESKTOP_DIR
+
 echo ""
 echo "MENU"
 echo "[1] PARA INSTALAR"
@@ -22,6 +24,7 @@ echo "OPÇÃO:"
 read opcao
 
 if [ "$opcao" = "1" ]; then
+	echo ""
 	echo "Instalação sendo iniciada..."	
 
 	echo ""
@@ -141,7 +144,7 @@ EOF
 		echo "O diretório para os icones será criado..."
 		mkdir /usr/share/pixmaps/hotspot
 	fi
-	if [ -e "/tmp/connection.png" ]; then
+	if [ -e "/usr/share/pixmaps/hotspot/connection.png" ]; then
 		echo "O arquivo encontrado... Será atualizado..."
 		echo ""
 		rm /tmp/connection.png
@@ -153,7 +156,7 @@ EOF
 		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/connection.png 
 		cp /tmp/connection.png /usr/share/pixmaps/hotspot
 	fi
-	if [ -e "/tmp/hotspot.png" ]; then
+	if [ -e "/usr/share/pixmaps/hotspot/hotspot.png" ]; then
 		echo "O arquivo encontrado... Será atualizado..."
 		echo ""
 		rm /tmp/hotspot.png
@@ -234,7 +237,28 @@ GenericName[pt_BR]=Restart do Hotspot
 Icon=/usr/share/pixmaps/hotspot/connection.png
 
 EOF
+	
+	cat <<EOF > /home/$SUDO_USER/Desktop/RStar.desktop
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Name=Restart do Hotspot
+Name[pt_BR]=Restart do Hotspot
+Exec=roxterm -e "sudo bash -c /usr/share/Hotspot/RStar.sh"
+Terminal=false
+StartupNotify=true
+Comment=Reinicia o hotspot
+Comment[pt_BR]=Reinicia o hotspot
+Keywords=hotspot;internet;network;
+Keywords[pt_BR]=internet;network;hotspot;
+Categories=Network;WebBrowser;
+GenericName=Restart do Hotspot
+GenericName[pt_BR]=Restart do Hotspot
+Icon=/usr/share/pixmaps/hotspot/connection.png
 
+EOF
+	
 	cat <<EOF > /usr/share/applications/Stop.desktop
 [Desktop Entry]
 Version=1.0
@@ -255,19 +279,82 @@ GenericName[pt_BR]=Restart do Hotspot
 Icon=/usr/share/pixmaps/hotspot/hotspot.png
 
 EOF
-
-	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStar.desktop /usr/share/applications/Stop.desktop
 	
-	cat /var/spool/cron/crontabs/root | grep -q "@reboot sudo /usr/share/Hotspot/Start.sh"
+	cat <<EOF > /home/$SUDO_USER/Desktop/Stop.desktop
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Name=Finaliza o Hotspot
+Name[pt_BR]=Finaliza o Hotspot
+Exec=roxterm -e "sudo bash -c /usr/share/Hotspot/Stop.sh"
+Terminal=false
+StartupNotify=true
+Comment=Finaliza o hotspot
+Comment[pt_BR]=Finaliza o hotspot
+Keywords=hotspot;internet;network;
+Keywords[pt_BR]=internet;network;hotspot;
+Categories=Network;WebBrowser;
+GenericName=Restart do Hotspot
+GenericName[pt_BR]=Restart do Hotspot
+Icon=/usr/share/pixmaps/hotspot/hotspot.png
+
+EOF
+	echo "Os atalhos na Àrea de trabalho foram criados..."
+	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStar.desktop /usr/share/applications/Stop.desktop 
+	chmod +x /home/$SUDO_USER/Desktop/RStar.desktop /home/$SUDO_USER/Desktop/Stop.desktop
+	
+	cat <<EOF >  /etc/init.d/hotstop.sh
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:		hotspot
+# Required-Start:	$remote_fs
+# Required-Stop:	$remote_fs
+# Should-Start:		$network
+# Should-Stop:
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
+# Short-Description:	Access point and authentication server for Wi-Fi and Ethernet
+# Description:		Access point and authentication server for Wi-Fi and Ethernet
+#			Userspace IEEE 802.11 AP and IEEE 802.1X/WPA/WPA2/EAP Authenticator
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+case "\$1" in
+  start)
+	sleep 3 
+	/usr/share/Hotspot/Start.sh
+	;;
+  stop)
+	/usr/share/Hotspot/Stop.sh
+	;;
+  restart)
+	/usr/share/Hotspot/RStar.sh
+	;;
+  status)
+	echo "hotspot iniciado..."
+	;;
+esac
+
+exit 0
+
+EOF
+	update-rc.d hotstop.sh defaults
+	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop.sh"
 	
 	if [ "$?" = "1" ]; then
-		echo "As configurações no crontab serão atualizadas..." 
-		echo "@reboot sudo /usr/share/Hotspot/Start.sh" >> /var/spool/cron/crontabs/root
+		echo "As configurações serão atualizadas..." 
+		sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
+		echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop.sh" >> /etc/sudoers
 	else
-		echo "As configurações no crontab estão atualizadas... "
+		echo "As configurações estão atualizadas..."
 	fi
 
 	service hostapd start
+	service hotstop.sh start
+	
 
 elif [ "$opcao" = "2" ]; then
 	echo ""
@@ -297,6 +384,16 @@ elif [ "$opcao" = "2" ]; then
 	else
 		echo "O arquivo não encontrado..."
 	fi
+	if [ -e "/home/$SUDO_USER/Desktop/RStar.desktop" ]; then
+		rm /home/$SUDO_USER/Desktop/RStar.desktop
+	else
+		echo "O arquivo não encontrado..."
+	fi
+	if [ -e "/home/$SUDO_USER/Desktop/Stop.desktop" ]; then
+		rm /home/$SUDO_USER/Desktop/Stop.desktop
+	else
+		echo "O arquivo não encontrado..."
+	fi
 	if [ -e "/etc/hostapd/hostapd.conf" ]; then
 		rm /etc/hostapd/hostapd.conf
 	else
@@ -312,13 +409,13 @@ elif [ "$opcao" = "2" ]; then
 	else
 		echo "O arquivo não encontrado..."
 	fi
-	cat /var/spool/cron/crontabs/root | grep -q "@reboot sudo /usr/share/Hotspot/Start.sh"
+	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop.sh"
 	if [ "$?" = "1" ]; then
 		echo "Configuração não encontrada..."
 	else
 		echo "A configuração será deletada... "
-		awk -F'@reboot sudo /usr/share/Hotspot/Start.sh' '{print $1}' /var/spool/cron/crontabs/root > /tmp/temp.txt
-		mv /tmp/temp.txt /var/spool/cron/crontabs/root
+		awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop.sh" '{print $1}' /etc/sudoers > /tmp/temp.txt
+		mv /tmp/temp.txt /etc/sudoers
 		echo "Os arquivos foram removidos..."
 	fi	 
 elif [ "$opcao" = "3" ]; then
