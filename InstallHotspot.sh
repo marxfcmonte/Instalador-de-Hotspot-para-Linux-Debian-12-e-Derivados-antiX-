@@ -26,7 +26,7 @@ if [ "$opcao" = "1" ]; then
 
 	echo ""
 
-	apt install -y hostapd dnsmasq wireless-tools iw wvdial
+	apt install -y hostapd dnsmasq wireless-tools iw wvdial tlp
 
 	service dnsmasq stop
 
@@ -68,14 +68,6 @@ Enter para continuar, se não digite o nome da interface:"
 
 	echo ""
 
-	if [ "$wifi" = "" ]; then
-		wifi="wlan0"
-		echo "O nome da interface de rede Wi-Fi (PADRÃO): $wifi"	
-	else
-		echo "O nome da interface de rede substituída com sucesso!"
-		echo "O nome da interface de rede Wi-Fi: $wifi"
-	fi
-
 	if [ "$ethe" = "" ]; then
 		ethe="eth0"
 		echo "O nome da interface de rede Ethernet (PADRÃO): $ethe"
@@ -84,6 +76,13 @@ Enter para continuar, se não digite o nome da interface:"
 		echo "O nome da interface de rede Etherne: $ethe"
 	fi
 
+	if [ "$wifi" = "" ]; then
+		wifi="wlan0"
+		echo "O nome da interface de rede Wi-Fi (PADRÃO): $wifi"	
+	else
+		echo "O nome da interface de rede substituída com sucesso!"
+		echo "O nome da interface de rede Wi-Fi: $wifi"
+	fi
 
 	cat <<EOF > /etc/dnsmasq.conf
 log-facility=/var/log/dnsmasq.log
@@ -133,9 +132,40 @@ EOF
 		echo "O diretório Hotspot será criado..."
 		mkdir /usr/share/Hotspot
 	fi
-
-	touch /usr/share/Hotspot/Start.sh
-
+	if [ -d "/usr/share/pixmaps/hotspot" ]; then
+		echo "O diretório para os icones já existe e será deletado..."
+		rm -rf /usr/share/pixmaps/hotspot
+		echo "O diretório para os icones será criado..."
+		mkdir /usr/share/pixmaps/hotspot
+	else
+		echo "O diretório para os icones será criado..."
+		mkdir /usr/share/pixmaps/hotspot
+	fi
+	if [ -e "/tmp/connection.png" ]; then
+		echo "O arquivo encontrado... Será atualizado..."
+		echo ""
+		rm /tmp/connection.png
+		wget -P /tmp  https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/connection.png 
+		cp /tmp/connection.png /usr/share/pixmaps/hotspot
+	else
+		echo "O arquivo não encontrado... Será baixado..."
+		echo ""
+		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/connection.png 
+		cp /tmp/connection.png /usr/share/pixmaps/hotspot
+	fi
+	if [ -e "/tmp/hotspot.png" ]; then
+		echo "O arquivo encontrado... Será atualizado..."
+		echo ""
+		rm /tmp/hotspot.png
+		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/hotspot.png
+		cp /tmp/hotspot.png /usr/share/pixmaps/hotspot
+	else
+		echo "O arquivo não encontrado... Será baixado..."
+		echo ""
+		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/hotspot.png
+		cp /tmp/hotspot.png /usr/share/pixmaps/hotspot
+	fi
+	
 	cat <<EOF > /usr/share/Hotspot/Start.sh
 #!/bin/bash
 
@@ -154,8 +184,6 @@ service dnsmasq start
 exit 0
 
 EOF
-
-	touch /usr/share/Hotspot/RStar.sh
 
 	cat <<EOF > /usr/share/Hotspot/RStar.sh
 #!/bin/bash
@@ -178,8 +206,6 @@ exit 0
 
 EOF
 
-	touch /usr/share/Hotspot/Stop.sh
-
 	cat <<EOF > /usr/share/Hotspot/Stop.sh
 #!/bin/bash
 
@@ -187,9 +213,6 @@ sudo service hostapd stop
 sudo service dnsmasq stop
 
 EOF
-
-	touch /usr/share/applications/RStar.desktop
-	touch /usr/share/applications/Stop.desktop
 
 	cat <<EOF > /usr/share/applications/RStar.desktop
 [Desktop Entry]
@@ -208,7 +231,7 @@ Keywords[pt_BR]=internet;network;hotspot;
 Categories=Network;WebBrowser;
 GenericName=Restart do Hotspot
 GenericName[pt_BR]=Restart do Hotspot
-Icon=/usr/share/pixmaps/network-assistant.png
+Icon=/usr/share/pixmaps/hotspot/connection.png
 
 EOF
 
@@ -229,22 +252,14 @@ Keywords[pt_BR]=internet;network;hotspot;
 Categories=Network;WebBrowser;
 GenericName=Restart do Hotspot
 GenericName[pt_BR]=Restart do Hotspot
-Icon=/usr/share/pixmaps/cross_red.png
+Icon=/usr/share/pixmaps/hotspot/hotspot.png
 
 EOF
 
-	chmod +x /usr/share/Hotspot/Start.sh
-
-	chmod +x /usr/share/Hotspot/RStar.sh
-
-	chmod +x /usr/share/Hotspot/Stop.sh
-
-	chmod +x /usr/share/applications/RStar.desktop
-
-	chmod +x /usr/share/applications/Stop.desktop
-
+	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStar.desktop /usr/share/applications/Stop.desktop
+	
 	cat /var/spool/cron/crontabs/root | grep -q "@reboot sudo /usr/share/Hotspot/Start.sh"
-
+	
 	if [ "$?" = "1" ]; then
 		echo "As configurações no crontab serão atualizadas..." 
 		echo "@reboot sudo /usr/share/Hotspot/Start.sh" >> /var/spool/cron/crontabs/root
@@ -261,8 +276,14 @@ elif [ "$opcao" = "2" ]; then
 		sudo service hostapd stop
 		sudo service dnsmasq stop
 		apt remove -y hostapd dnsmasq wireless-tools iw wvdial
+		apt autoremove -y
 		rm -rf /usr/share/Hotspot
-		echo "" > /etc/hostapd/hostapd.conf
+	else
+		echo "O diretório não encontrado..."
+	fi
+	if [ -d "/usr/share/pixmaps/hotspot" ]; then
+		echo "Os arquivos serão removidos..." 
+		rm -rf /usr/share/pixmaps/hotspot
 	else
 		echo "O diretório não encontrado..."
 	fi
@@ -273,6 +294,21 @@ elif [ "$opcao" = "2" ]; then
 	fi
 	if [ -e "/usr/share/applications/Stop.desktop" ]; then
 		rm /usr/share/applications/Stop.desktop
+	else
+		echo "O arquivo não encontrado..."
+	fi
+	if [ -e "/etc/hostapd/hostapd.conf" ]; then
+		rm /etc/hostapd/hostapd.conf
+	else
+		echo "O arquivo não encontrado..."
+	fi
+	if [ -e "/tmp/connection.png" ]; then
+		rm /tmp/connection.png
+	else
+		echo "O arquivo não encontrado..."
+	fi
+	if [ -e "/tmp/hotspot.png" ]; then
+		rm /tmp/hotspot.png
 	else
 		echo "O arquivo não encontrado..."
 	fi
