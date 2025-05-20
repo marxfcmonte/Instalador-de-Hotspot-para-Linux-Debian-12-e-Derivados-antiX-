@@ -144,7 +144,7 @@ EOF
 		echo "O diretório para os icones será criado..."
 		mkdir /usr/share/pixmaps/hotspot
 	fi
-	if [ -e "/usr/share/pixmaps/hotspot/connection.png" ]; then
+	if [ -e "/tmp/hotspot.png" ]; then
 		echo "O arquivo encontrado... Será atualizado..."
 		echo ""
 		rm /tmp/connection.png
@@ -156,7 +156,7 @@ EOF
 		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/connection.png 
 		cp /tmp/connection.png /usr/share/pixmaps/hotspot
 	fi
-	if [ -e "/usr/share/pixmaps/hotspot/hotspot.png" ]; then
+	if [ -e "/tmp/hotspot.png" ]; then
 		echo "O arquivo encontrado... Será atualizado..."
 		echo ""
 		rm /tmp/hotspot.png
@@ -326,15 +326,15 @@ case "\$1" in
   start)
 	sleep 3 
 	/usr/share/Hotspot/Start.sh
-	echo "Hotspot iniciado..." > /usr/share/Hotspot/hotspot.conf
+	echo "Hotspot\e[32;1m iniciado\e[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   stop)
 	/usr/share/Hotspot/Stop.sh
-	echo "Hotspot parado..." > /usr/share/Hotspot/hotspot.conf
+	echo "Hotspot\e[31;1m parado\e[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   restart)
 	/usr/share/Hotspot/RStar.sh
-	echo "Hotspot reiniciado..." > /usr/share/Hotspot/hotspot.conf
+	echo "Hotspot\e[32;1m reiniciado\e[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   status)
 	cat /usr/share/Hotspot/hotspot.conf
