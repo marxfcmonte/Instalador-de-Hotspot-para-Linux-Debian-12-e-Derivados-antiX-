@@ -1,5 +1,6 @@
-### Imagens PNG
+### Pasta com os icones do programa.
 
-Esse diretório contém imagens png para serem uadados pelo programa InstallHotspot.
+Arquivos .png para serem usados pelo Instalador para criar os executáveis no Menu do Linux.
 
-Baixe o arquivo InstallHotspot e esse diretório para que não haja erro na instalação.
+Baixe a pasta Icones e o InstallHotspot e coloquem no mesmo diretário para a instalação. 
+
