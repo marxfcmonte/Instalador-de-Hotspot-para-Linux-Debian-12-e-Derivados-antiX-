@@ -2,9 +2,8 @@
 
 Arquivos InstallHotspot.sh e o executável, InstallHotspot, executar no terminal como root, use sudo ou su.
 
-Ele cria dois programas, um para reestart do hotspot, e o outro para parar o serviço de hotspot. Além disso, deixa o 
-serviço de hotspot com inicialização automática junto com a inicialização do sistema.
+Ele cria dois programas, um para restart o Hotspot0, e o outro para parar o serviço de Hotspot. Além disso, deixar o serviço de Hotspot com inicialização automática com a inicialização do sistema.
 
-Cria atalhos para a Área de trabalho e no meno dos aplicativos.
+Cria atalhos para a Área de trabalho e no meno dos aplicativos do sistema.
 
 Totalmente automatizado.
