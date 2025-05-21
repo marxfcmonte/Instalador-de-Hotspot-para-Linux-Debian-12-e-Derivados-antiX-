@@ -228,6 +228,7 @@ EOF
 
 sudo service hostapd stop
 sudo service dnsmasq stop
+exit 0
 
 EOF
 
