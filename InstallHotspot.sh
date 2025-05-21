@@ -227,8 +227,8 @@ EOF
 	cat <<EOF > /usr/share/Hotspot/StopHotspot.sh
 #!/bin/bash
 
-sudo service hostapd stop
-sudo service dnsmasq stop
+service hostapd stop
+service dnsmasq stop
 exit 0
 
 EOF
@@ -382,8 +382,8 @@ elif [ "$opcao" = "2" ]; then
 	echo ""
 	if [ -d "/usr/share/Hotspot" ]; then
 		echo "Os arquivos serão removidos..." 
-		sudo service hostapd stop
-		sudo service dnsmasq stop
+		service hostapd stop
+		service dnsmasq stop
 		apt remove -y hostapd dnsmasq wireless-tools iw wvdial
 		apt autoremove -y
 		rm -rf /usr/share/Hotspot
