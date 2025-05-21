@@ -167,7 +167,7 @@ EOF
 		cp /tmp/hotspot.png /usr/share/pixmaps/hotspot
 	fi
 	
-	cat <<EOF > /usr/share/Hotspot/Start.sh
+	cat <<EOF > /usr/share/Hotspot/StartHotspot.sh
 #!/bin/bash
 
 service hostapd stop
@@ -186,7 +186,7 @@ exit 0
 
 EOF
 
-	cat <<EOF > /usr/share/Hotspot/RStar.sh
+	cat <<EOF > /usr/share/Hotspot/RStarHotspot.sh
 #!/bin/bash
 
 service hostapd stop
@@ -223,7 +223,7 @@ exit 0
 
 EOF
 
-	cat <<EOF > /usr/share/Hotspot/Stop.sh
+	cat <<EOF > /usr/share/Hotspot/StopHotspot.sh
 #!/bin/bash
 
 sudo service hostapd stop
@@ -232,7 +232,7 @@ exit 0
 
 EOF
 
-	cat <<EOF > /usr/share/applications/RStar.desktop
+	cat <<EOF > /usr/share/applications/RStarHotspot.desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -253,7 +253,7 @@ Icon=/usr/share/pixmaps/hotspot/connection.png
 
 EOF
 	
-	cat <<EOF > /home/$SUDO_USER/Desktop/RStar.desktop
+	cat <<EOF > /home/$SUDO_USER/Desktop/RStarHotspot.desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -274,7 +274,7 @@ Icon=/usr/share/pixmaps/hotspot/connection.png
 
 EOF
 	
-	cat <<EOF > /usr/share/applications/Stop.desktop
+	cat <<EOF > /usr/share/applications/StopHotspot.desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -295,7 +295,7 @@ Icon=/usr/share/pixmaps/hotspot/hotspot.png
 
 EOF
 	
-	cat <<EOF > /home/$SUDO_USER/Desktop/Stop.desktop
+	cat <<EOF > /home/$SUDO_USER/Desktop/StopHotspot.desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -316,8 +316,8 @@ Icon=/usr/share/pixmaps/hotspot/hotspot.png
 
 EOF
 	echo "Os atalhos na Àrea de trabalho foram criados..."
-	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStar.desktop /usr/share/applications/Stop.desktop 
-	chmod 775 /home/$SUDO_USER/Desktop/RStar.desktop /home/$SUDO_USER/Desktop/Stop.desktop
+	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStarHotspot.desktop /usr/share/applications/StopHotspot.desktop 
+	chmod 775 /home/$SUDO_USER/Desktop/RStarHotspot.desktop /home/$SUDO_USER/Desktop/StopHotspot.desktop
 	
 	cat <<EOF >  /etc/init.d/hotstop
 #!/bin/sh
@@ -340,15 +340,15 @@ EOF
 case "\$1" in
   start)
 	sleep 3 
-	/usr/share/Hotspot/Start.sh
+	/usr/share/Hotspot/StartHotspot.sh
 	echo "Hotspot\e[32;1m iniciado\e[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   stop)
-	/usr/share/Hotspot/Stop.sh
+	/usr/share/Hotspot/StopHotspot.sh
 	echo "Hotspot\e[31;1m parado\e[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   restart)
-	/usr/share/Hotspot/RStar.sh
+	/usr/share/Hotspot/RStarHotspot.sh
 	echo "Hotspot\e[32;1m reiniciado\e[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   status)
@@ -395,22 +395,22 @@ elif [ "$opcao" = "2" ]; then
 	else
 		echo "O diretório não encontrado..."
 	fi
-	if [ -e "/usr/share/applications/RStar.desktop" ]; then
+	if [ -e "/usr/share/applications/RStarHotspot.desktop" ]; then
 		rm /usr/share/applications/RStar.desktop
 	else
 		echo "O arquivo não encontrado..."
 	fi
-	if [ -e "/usr/share/applications/Stop.desktop" ]; then
+	if [ -e "/usr/share/applications/StopHotspot.desktop" ]; then
 		rm /usr/share/applications/Stop.desktop
 	else
 		echo "O arquivo não encontrado..."
 	fi
-	if [ -e "/home/$SUDO_USER/Desktop/RStar.desktop" ]; then
+	if [ -e "/home/$SUDO_USER/Desktop/RStarHotspot.desktop" ]; then
 		rm /home/$SUDO_USER/Desktop/RStar.desktop
 	else
 		echo "O arquivo não encontrado..."
 	fi
-	if [ -e "/home/$SUDO_USER/Desktop/Stop.desktop" ]; then
+	if [ -e "/home/$SUDO_USER/Desktop/StopHotspot.desktop" ]; then
 		rm /home/$SUDO_USER/Desktop/Stop.desktop
 	else
 		echo "O arquivo não encontrado..."
