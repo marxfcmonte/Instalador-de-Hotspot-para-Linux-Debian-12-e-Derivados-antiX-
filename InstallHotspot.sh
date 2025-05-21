@@ -26,7 +26,8 @@ if [ "$opcao" = "1" ]; then
 	echo "Instalação sendo iniciada..."	
 
 	echo ""
-
+	
+	apt update && apt upgrade -y
 	apt install -y hostapd dnsmasq wireless-tools iw wvdial tlp
 
 	service dnsmasq stop
