@@ -28,7 +28,7 @@ if [ "$opcao" = "1" ]; then
 	echo ""
 	
 	apt update && apt upgrade -y
-	apt install -y hostapd dnsmasq wireless-tools iw wvdial tlp
+	apt install -y hostapd dnsmasq wireless-tools iw tlp # wvdial
 
 	service dnsmasq stop
 
@@ -384,7 +384,7 @@ elif [ "$opcao" = "2" ]; then
 		echo "Os arquivos serão removidos..." 
 		service hostapd stop
 		service dnsmasq stop
-		apt remove -y hostapd dnsmasq wireless-tools iw wvdial
+		apt remove -y hostapd dnsmasq wireless-tools iw # wvdial
 		apt autoremove -y
 		rm -rf /usr/share/Hotspot
 	else
@@ -397,22 +397,22 @@ elif [ "$opcao" = "2" ]; then
 		echo "O diretório não encontrado..."
 	fi
 	if [ -e "/usr/share/applications/RStarHotspot.desktop" ]; then
-		rm /usr/share/applications/RStar.desktop
+		rm /usr/share/applications/RStarHotspot.desktop
 	else
 		echo "O arquivo não encontrado..."
 	fi
 	if [ -e "/usr/share/applications/StopHotspot.desktop" ]; then
-		rm /usr/share/applications/Stop.desktop
+		rm /usr/share/applications/StopHotspot.desktop
 	else
 		echo "O arquivo não encontrado..."
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/RStarHotspot.desktop" ]; then
-		rm /home/$SUDO_USER/Desktop/RStar.desktop
+		rm /home/$SUDO_USER/Desktop/RStarHotspot.desktop
 	else
 		echo "O arquivo não encontrado..."
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/StopHotspot.desktop" ]; then
-		rm /home/$SUDO_USER/Desktop/Stop.desktop
+		rm /home/$SUDO_USER/Desktop/StopHotspot.desktop
 	else
 		echo "O arquivo não encontrado..."
 	fi
