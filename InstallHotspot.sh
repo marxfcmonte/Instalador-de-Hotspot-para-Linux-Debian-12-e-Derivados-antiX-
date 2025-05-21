@@ -1,89 +1,70 @@
 #!/bin/bash
 
-echo ""
-echo "Desenvolvido por Marx F. C. Monte"
-echo "Instalador de Hotspot v 1.6 (2025)"
-echo "Para a Distribuição Debian 12 e derivados (antiX 23)"
-echo ""
+echo "
+Desenvolvido por Marx F. C. Monte
+Instalador de Hotspot v 1.6 (2025)
+Para a Distribuição Debian 12 e derivados (antiX 23)
+"
 
 if [ "$USER" != "root" ]; then
-	echo "Use comando 'sudo'  ou comando 'su' antes de inicializar o programa."
-	echo ""
+	echo -e "Use comando 'sudo'  ou comando 'su' 
+antes de inicializar o programa.\n"
+
 	exit 1	
 fi
 
-echo ""
-echo "MENU"
-echo "[1] PARA INSTALAR"
-echo "[2] PARA REMOVER"
-echo "[3] PARA SAIR"
-echo ""
-echo "OPÇÃO:"
-read opcao
+echo "
+	MENU
+[1] PARA INSTALAR
+[2] PARA REMOVER
+[3] PARA SAIR
+"
+read -p "OPÇÃO: " opcao
 
 if [ "$opcao" = "1" ]; then
-	echo ""
-	echo "Instalação sendo iniciada..."	
-
-	echo ""
+	echo -e "\nInstalação sendo iniciada...\n"	
 	
 	apt update && apt upgrade -y
-	apt install -y hostapd dnsmasq wireless-tools iw tlp # wvdial
-
+	apt install -y hostapd dnsmasq wireless-tools iw
+	
+	echo
+	
 	service dnsmasq stop
 
 	sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 
-	echo ""
-
-	echo "Verifique o nome da interface de rede Ethernet"
-
-	echo ""
+	echo -e "\nVerifique o nome da interface de rede Ethernet\n"
 
 	ip addr | grep "th"
+	echo
+	read -p "Se o nome da interface de rede Ethernet é eth0 aperte 
+Enter para continuar, se não digite o nome da interface: " ethe
 
-	echo ""
-
-	echo "Se o nome da interface de rede Ethernet é eth0 aperte 
-Enter para continuar, se não digite o nome da interface:"
-	read ethe
-
-	echo "Verifique o nome da interface de rede WiFi"
-
-	echo ""
+	echo -e "\nVerifique o nome da interface de rede Wi-Fi\n"
 
 	ip addr | grep "lan"
-
-	echo ""
-
-	echo "Se o nome da interface de rede WiFi é wlan0 aperte 
-Enter para continuar, se não digite o nome da interface:"
-	read wifi
-
-	echo "Nome da rede Wi-Fi (SSID):"
-	read rede
-
-	echo ""
-
-	echo "Senha da rede Wi-Fi:"
-	read senha
-
-	echo ""
+	echo
+	read -p "Se o nome da interface de rede Wi-Fi é wlan0 aperte 
+Enter para continuar, se não digite o nome da interface: " wifi
+	echo
+	read -p "Nome da rede Wi-Fi (SSID): " rede
+	read -p "Senha da rede Wi-Fi: " senha
+	echo 
 
 	if [ "$ethe" = "" ]; then
 		ethe="eth0"
 		echo "O nome da interface de rede Ethernet (PADRÃO): $ethe"
 	else
-		echo "O nome da interface de rede substituída com sucesso!"
-		echo "O nome da interface de rede Etherne: $ethe"
+		echo "O nome da interface de rede substituída com sucesso!
+O nome da interface de rede Etherne: $ethe"
 	fi
 
 	if [ "$wifi" = "" ]; then
 		wifi="wlan0"
 		echo "O nome da interface de rede Wi-Fi (PADRÃO): $wifi"	
 	else
-		echo "O nome da interface de rede substituída com sucesso!"
-		echo "O nome da interface de rede Wi-Fi: $wifi"
+		echo "O nome da interface de rede substituída com sucesso!
+O nome da interface de rede Wi-Fi: $wifi"
 	fi
 
 	cat <<EOF > /etc/dnsmasq.conf
@@ -96,7 +77,6 @@ log-queries
 EOF
 
 	service dnsmasq start
-
 	service hostapd stop
 
 	ifconfig $wifi up
@@ -144,26 +124,22 @@ EOF
 		mkdir /usr/share/pixmaps/hotspot
 	fi
 	if [ -e "/tmp/hotspot.png" ]; then
-		echo "O arquivo encontrado... Será atualizado..."
-		echo ""
+		echo -e "O arquivo encontrado... Será atualizado...\n"
 		rm /tmp/connection.png
 		wget -P /tmp  https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/connection.png 
 		cp /tmp/connection.png /usr/share/pixmaps/hotspot
 	else
-		echo "O arquivo não encontrado... Será baixado..."
-		echo ""
+		echo -e "O arquivo não encontrado... Será baixado...\n"
 		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/connection.png 
 		cp /tmp/connection.png /usr/share/pixmaps/hotspot
 	fi
 	if [ -e "/tmp/hotspot.png" ]; then
-		echo "O arquivo encontrado... Será atualizado..."
-		echo ""
+		echo -e "O arquivo encontrado... Será atualizado...\n"
 		rm /tmp/hotspot.png
 		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/hotspot.png
 		cp /tmp/hotspot.png /usr/share/pixmaps/hotspot
 	else
-		echo "O arquivo não encontrado... Será baixado..."
-		echo ""
+		echo -e "O arquivo não encontrado... Será baixado...\n"
 		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/hotspot.png
 		cp /tmp/hotspot.png /usr/share/pixmaps/hotspot
 	fi
@@ -183,6 +159,7 @@ iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 service hostapd start
 service dnsmasq start
+
 exit 0
 
 EOF
@@ -220,6 +197,7 @@ sleep 5
 echo "Hotspot reiniciado..." > /usr/share/Hotspot/hotspot.conf
 cat /usr/share/Hotspot/hotspot.conf
 sleep 5
+
 exit 0
 
 EOF
@@ -229,6 +207,7 @@ EOF
 
 service hostapd stop
 service dnsmasq stop
+
 exit 0
 
 EOF
@@ -377,14 +356,13 @@ EOF
 	service hotstop start
 	service hotstop status
 	
-
 elif [ "$opcao" = "2" ]; then
 	echo ""
 	if [ -d "/usr/share/Hotspot" ]; then
 		echo "Os arquivos serão removidos..." 
 		service hostapd stop
 		service dnsmasq stop
-		apt remove -y hostapd dnsmasq wireless-tools iw # wvdial
+		apt remove -y wireless-tools 
 		apt autoremove -y
 		rm -rf /usr/share/Hotspot
 	else
@@ -431,15 +409,13 @@ elif [ "$opcao" = "2" ]; then
 		echo "Os arquivos foram removidos..."
 	fi	 
 elif [ "$opcao" = "3" ]; then
-	echo ""
-	echo "Saindo do instalador..." 
+	echo -e "\nSaindo do instalador...\n" 
 else
-	echo ""
-	echo "Opção inválida!!!" 
+	echo -e "\nOpção inválida!!!\n" 
 fi
 
 sleep 2
 
-echo ""
+echo 
 
 exit 0
