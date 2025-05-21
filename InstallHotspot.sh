@@ -12,8 +12,6 @@ if [ "$USER" != "root" ]; then
 	exit 1	
 fi
 
-echo $XDG_DESKTOP_DIR
-
 echo ""
 echo "MENU"
 echo "[1] PARA INSTALAR"
@@ -203,8 +201,24 @@ iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 service hostapd start
 service dnsmasq start
-echo 'Hotspot Reiniciado...' >&2
-sleep 2
+service hostapd stop
+service dnsmasq stop
+sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
+ifconfig $wifi up
+ifconfig $wifi 192.168.137.1/24
+iptables -t nat -F
+iptables -F 
+iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
+iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
+echo '1' > /proc/sys/net/ipv4/ip_forward
+service hostapd start
+service dnsmasq start
+echo "Hotspot reiniciando..." > /usr/share/Hotspot/hotspot.conf
+cat /usr/share/Hotspot/hotspot.conf
+sleep 5
+echo "Hotspot reiniciado..." > /usr/share/Hotspot/hotspot.conf
+cat /usr/share/Hotspot/hotspot.conf
+sleep 5
 exit 0
 
 EOF
@@ -224,7 +238,7 @@ Type=Application
 Terminal=false
 Name=Restart do Hotspot
 Name[pt_BR]=Restart do Hotspot
-Exec=roxterm -e "sudo bash -c /usr/share/Hotspot/RStar.sh"
+Exec=roxterm -e "sudo service hotstop restart"
 Terminal=false
 StartupNotify=true
 Comment=Reinicia o hotspot
@@ -245,7 +259,7 @@ Type=Application
 Terminal=false
 Name=Restart do Hotspot
 Name[pt_BR]=Restart do Hotspot
-Exec=roxterm -e "sudo bash -c /usr/share/Hotspot/RStar.sh"
+Exec=roxterm -e "sudo service hotstop restart"
 Terminal=false
 StartupNotify=true
 Comment=Reinicia o hotspot
@@ -266,7 +280,7 @@ Type=Application
 Terminal=false
 Name=Finaliza o Hotspot
 Name[pt_BR]=Finaliza o Hotspot
-Exec=roxterm -e "sudo bash -c /usr/share/Hotspot/Stop.sh"
+Exec=roxterm -e "sudo service hotstop stop"
 Terminal=false
 StartupNotify=true
 Comment=Finaliza o hotspot
@@ -287,7 +301,7 @@ Type=Application
 Terminal=false
 Name=Finaliza o Hotspot
 Name[pt_BR]=Finaliza o Hotspot
-Exec=roxterm -e "sudo bash -c /usr/share/Hotspot/Stop.sh"
+Exec=roxterm -e "sudo service hotstop stop"
 Terminal=false
 StartupNotify=true
 Comment=Finaliza o hotspot
@@ -302,7 +316,7 @@ Icon=/usr/share/pixmaps/hotspot/hotspot.png
 EOF
 	echo "Os atalhos na Àrea de trabalho foram criados..."
 	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStar.desktop /usr/share/applications/Stop.desktop 
-	chmod +x /home/$SUDO_USER/Desktop/RStar.desktop /home/$SUDO_USER/Desktop/Stop.desktop
+	chmod 775 /home/$SUDO_USER/Desktop/RStar.desktop /home/$SUDO_USER/Desktop/Stop.desktop
 	
 	cat <<EOF >  /etc/init.d/hotstop
 #!/bin/sh
@@ -357,7 +371,9 @@ EOF
 	fi
 
 	service hostapd start
+	echo "Testanto o serviço Hotspot..."
 	service hotstop start
+	service hotstop status
 	
 
 elif [ "$opcao" = "2" ]; then
