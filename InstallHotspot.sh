@@ -350,12 +350,11 @@ EOF
 	else
 		echo "As configurações estão atualizadas..."
 	fi
-
 	service hostapd start
 	echo "Testanto o serviço Hotspot..."
 	service hotstop start
 	service hotstop status
-	
+	desktop-menu --write-out-global
 elif [ "$opcao" = "2" ]; then
 	echo ""
 	if [ -d "/usr/share/Hotspot" ]; then
@@ -407,6 +406,7 @@ elif [ "$opcao" = "2" ]; then
 		awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" '{print $1}' /etc/sudoers > /tmp/temp.txt
 		mv /tmp/temp.txt /etc/sudoers
 		echo "Os arquivos foram removidos..."
+		desktop-menu --write-out-global
 	fi	 
 elif [ "$opcao" = "3" ]; then
 	echo -e "\nSaindo do instalador...\n" 
