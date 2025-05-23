@@ -27,7 +27,7 @@ if [ "$opcao" = "1" ]; then
 		echo "A instalação dos pacotes não será necessária..."
 	else
 		apt update && apt upgrade -y
-		apt install -y hostapd dnsmasq wireless-tools iw
+		apt install -y hostapd dnsmasq wireless-tools iw tlp
 	fi
 	if [ -d "/usr/share/Hotspot" ]; then
 		echo -e "O diretório Hotspot existe..."
@@ -39,7 +39,8 @@ if [ "$opcao" = "1" ]; then
 		echo "O arquivo install.conf existe..."
 	else
 		echo -e "O arquivo install.conf será criado..."
-		echo "hostapd dnsmasq wireless-tools iw" >\
+		echo "Pacotes instalados hostapd dnsmasq\
+		 wireless-tools iw tlp." >\
 		/usr/share/Hotspot/install.conf
 	fi
 	echo
@@ -333,6 +334,9 @@ exit 0
 EOF
 	chmod +x /etc/init.d/hotstop
 	update-rc.d hotstop defaults
+	update-rc.d hostapd defaults
+	update-rc.d dnsmasq defaults
+	update-rc.d tlp defaults
 	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
 	
 	if [ "$?" = "1" ]; then
@@ -351,9 +355,12 @@ elif [ "$opcao" = "2" ]; then
 	echo ""
 	if [ -d "/usr/share/Hotspot" ]; then
 		echo "Os arquivos serão removidos..." 
-		service hostapd stop
-		service dnsmasq stop
-		apt remove -y wireless-tools 
+		service hotstop stop
+		update-rc.d hostapd remove
+		update-rc.d dnsmasq remove
+		update-rc.d hotstop remove
+		update-rc.d tlp remove
+		apt remove -y hostapd dnsmasq wireless-tools iw tlp
 		apt autoremove -y
 		rm -rf /usr/share/Hotspot
 	else
@@ -361,7 +368,7 @@ elif [ "$opcao" = "2" ]; then
 	fi
 	if [ -d "/usr/share/pixmaps/hotspot" ]; then
 		echo "Os arquivos serão removidos..." 
-		rm -rf /usr/share/pixmaps/hotspot
+		rm -rf /usr/share/pi xmaps/hotspot
 	else
 		echo "O diretório não encontrado..."
 	fi
