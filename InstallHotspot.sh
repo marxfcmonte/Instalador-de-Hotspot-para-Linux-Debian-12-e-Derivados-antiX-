@@ -23,10 +23,25 @@ read -p "OPÇÃO: " opcao
 
 if [ "$opcao" = "1" ]; then
 	echo -e "\nInstalação sendo iniciada...\n"	
-	
-	apt update && apt upgrade -y
-	apt install -y hostapd dnsmasq wireless-tools iw
-	
+	if [ -e "/usr/share/Hotspot/install.conf" ]; then
+		echo "A instalação dos pacotes não será necessária..."
+	else
+		apt update && apt upgrade -y
+		apt install -y hostapd dnsmasq wireless-tools iw
+	fi
+	if [ -d "/usr/share/Hotspot" ]; then
+		echo -e "O diretório Hotspot existe..."
+	else
+		echo -e "\nO diretório Hotspot será criado...\n"
+				mkdir /usr/share/Hotspot
+	fi
+	if [ -e "/usr/share/Hotspot/install.conf" ]; then
+		echo "O arquivo install.conf existe..."
+	else
+		echo -e "O arquivo install.conf será criado..."
+		echo "hostapd dnsmasq wireless-tools iw" >\
+		/usr/share/Hotspot/install.conf
+	fi
 	echo
 	
 	service dnsmasq stop
@@ -104,46 +119,23 @@ wpa_group_rekey=600
 wpa_gmk_rekey=86400
 
 EOF
-
-	if [ -d "/usr/share/Hotspot" ]; then
-		echo "O diretório Hotspot existe e será deletado..."
-		rm -rf /usr/share/Hotspot
-		echo "O diretório Hotspot será criado..."
-		mkdir /usr/share/Hotspot
-	else
-		echo "O diretório Hotspot será criado..."
-		mkdir /usr/share/Hotspot
-	fi
 	if [ -d "/usr/share/pixmaps/hotspot" ]; then
-		echo "O diretório para os icones já existe e será deletado..."
-		rm -rf /usr/share/pixmaps/hotspot
-		echo "O diretório para os icones será criado..."
-		mkdir /usr/share/pixmaps/hotspot
+		echo "O diretório para os icones existe..."
 	else
 		echo "O diretório para os icones será criado..."
 		mkdir /usr/share/pixmaps/hotspot
+		cat <<EOF > /usr/share/Hotspot/hotspot_icones
+https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-\
+para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/\
+connection.png 
+https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-\
+para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/\
+hotspot.png			
+EOF
+		wget -i /usr/share/Hotspot/hotspot_icones -P /tmp/
+		mv /tmp/connection.png  /usr/share/pixmaps/hotspot
+		mv /tmp/hotspot.png /usr/share/pixmaps/hotspot
 	fi
-	if [ -e "/tmp/hotspot.png" ]; then
-		echo -e "O arquivo encontrado... Será atualizado...\n"
-		rm /tmp/connection.png
-		wget -P /tmp  https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/connection.png 
-		cp /tmp/connection.png /usr/share/pixmaps/hotspot
-	else
-		echo -e "O arquivo não encontrado... Será baixado...\n"
-		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/connection.png 
-		cp /tmp/connection.png /usr/share/pixmaps/hotspot
-	fi
-	if [ -e "/tmp/hotspot.png" ]; then
-		echo -e "O arquivo encontrado... Será atualizado...\n"
-		rm /tmp/hotspot.png
-		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/hotspot.png
-		cp /tmp/hotspot.png /usr/share/pixmaps/hotspot
-	else
-		echo -e "O arquivo não encontrado... Será baixado...\n"
-		wget -P /tmp https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/hotspot.png
-		cp /tmp/hotspot.png /usr/share/pixmaps/hotspot
-	fi
-	
 	cat <<EOF > /usr/share/Hotspot/StartHotspot.sh
 #!/bin/bash
 
@@ -394,7 +386,7 @@ elif [ "$opcao" = "2" ]; then
 		echo "O arquivo não encontrado..."
 	fi
 	if [ -e "/etc/hostapd/hostapd.conf" ]; then
-		rm /etc/hostapd/hostapd.conf
+		echo "" > /etc/hostapd/hostapd.conf
 	else
 		echo "O arquivo não encontrado..."
 	fi
