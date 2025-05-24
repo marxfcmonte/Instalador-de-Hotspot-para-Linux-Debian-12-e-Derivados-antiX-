@@ -3,7 +3,7 @@
 echo "
 Desenvolvido por Marx F. C. Monte
 Instalador de Hotspot v 1.8 (2025)
-Para a Distribuição Debian 12 e derivados (antiX 23)
+Para a Distribuição Debian 12 e derivados (antiX 23)\
 "
 
 if [ "$USER" != "root" ]; then
@@ -12,7 +12,12 @@ antes de inicializar o programa.\n"
 
 	exit 1	
 fi
-
+conexoes=$(ifconfig -a | grep broadcast -c)
+if [ "$conexoes" -lt 2 ]; then
+	echo -e "\nDeve haver pelo menos 2 interfaces ativas (Ethernet e Wi-Fi)...\n
+Instalação finalizada...\n"
+	exit 1        
+fi
 echo "
 	MENU
 [1] PARA INSTALAR
@@ -23,11 +28,15 @@ read -p "OPÇÃO: " opcao
 
 if [ "$opcao" = "1" ]; then
 	echo -e "\nInstalação sendo iniciada...\n"	
-	conexoes=$(ifconfig -a | grep broadcast -c)
-	if [ "$conexoes" -lt 2 ]; then
-        	echo -e "Deve haver pelo menos 2 conexões ativas (Ethernet e Wi-Fi)...\n"
-        	exit 1        
-    fi
+	interfaces=( $(ifconfig -a | grep broadcast -B 1 | cut -d ":" -f1 -s | sed 's/ //g') )
+	ethe=${interfaces[0]}
+	wifi=${interfaces[1]}
+	
+	echo -e "Nome da interface da rede Ethernet: $ethe"
+	echo -e "Nome da interface da rede Wi-Fi: $wifi"
+	read -p "Nome da rede Wi-Fi (SSID): " rede
+	read -p "Senha da rede Wi-Fi: " senha
+	echo 
 	if [ -e "/usr/share/Hotspot/install.conf" ]; then
 		echo "A instalação dos pacotes não será necessária..."
 	else
@@ -48,21 +57,12 @@ if [ "$opcao" = "1" ]; then
 		 wireless-tools iw tlp." >\
 		/usr/share/Hotspot/install.conf
 	fi
-	echo
 	
 	service dnsmasq stop
 
 	sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 	
-	interfaces=( $(ifconfig -a | grep broadcast -B 1 | cut -d ":" -f1 -s | sed 's/ //g') )
-	ethe=${interfaces[0]}
-	wifi=${interfaces[1]}
 	
-	echo -e "\nNome da interface de rede Ethernet: $ethe"
-	echo -e "Nome da interface de rede Wi-Fi: $wifi"
-	read -p "Nome da rede Wi-Fi (SSID): " rede
-	read -p "Senha da rede Wi-Fi: " senha
-	echo 
 
 	cat <<EOF > /etc/dnsmasq.conf
 log-facility=/var/log/dnsmasq.log
