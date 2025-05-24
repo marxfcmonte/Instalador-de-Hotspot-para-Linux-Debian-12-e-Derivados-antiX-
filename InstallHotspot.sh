@@ -349,7 +349,7 @@ elif [ "$opcao" = "2" ]; then
 	fi
 	if [ -d "/usr/share/pixmaps/hotspot" ]; then
 		echo "Os arquivos serão removidos..." 
-		rm -rf /usr/share/pi xmaps/hotspot
+		rm -rf /usr/share/pixmaps/hotspot
 	else
 		echo "O diretório não encontrado..."
 	fi
