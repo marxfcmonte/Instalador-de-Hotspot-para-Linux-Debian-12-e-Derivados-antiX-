@@ -12,6 +12,7 @@ antes de inicializar o programa.\n"
 
 	exit 1	
 fi
+comando=update-rc.d
 conexoes=$(ifconfig -a | grep broadcast -c)
 if [ "$conexoes" -lt 2 ]; then
 	echo -e "\nDeve haver pelo menos 2 interfaces ativas (Ethernet e Wi-Fi)...\n
@@ -272,8 +273,8 @@ EOF
 	echo "Os atalhos na Àrea de trabalho foram criados..."
 	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStarHotspot.desktop /usr/share/applications/StopHotspot.desktop 
 	chmod 775 /home/$SUDO_USER/Desktop/RStarHotspot.desktop /home/$SUDO_USER/Desktop/StopHotspot.desktop
-	
-	cat <<EOF >  /etc/init.d/hotstop
+	if command -v "$comando" &>/dev/null; then
+		cat <<EOF > /etc/init.d/hotstop
 #!/bin/sh
 
 ### BEGIN INIT INFO
@@ -313,34 +314,73 @@ esac
 exit 0
 
 EOF
-	chmod +x /etc/init.d/hotstop
-	update-rc.d hotstop defaults
-	update-rc.d hostapd defaults
-	update-rc.d dnsmasq defaults
-	update-rc.d tlp defaults
-	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
-	
-	if [ "$?" = "1" ]; then
-		echo "As configurações serão atualizadas..." 
-		sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
-		echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" >> /etc/sudoers
+		echo "Testanto o serviço Hotspot..."
+		chmod +x /etc/init.d/hotstop
+		update-rc.d hotstop defaults
+		update-rc.d hostapd defaults
+		update-rc.d dnsmasq defaults
+		update-rc.d tlp defaults
+		service hotstop start
+		service hotstop status
+		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
+		if [ "$?" = "1" ]; then
+			echo "As configurações serão atualizadas..." 
+			sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
+			echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" >> /etc/sudoers
+		else
+			echo "As configurações estão atualizadas..."
+		fi
 	else
-		echo "As configurações estão atualizadas..."
+		cat <<EOF >  /etc/systemd/system/hotstop.service
+[Unit]
+    Description=hotstop
+    After=network.target
+
+    [Service]
+    Type=simple
+    ExecStart=/usr/share/Hotspot/StartHotspot.sh
+    
+    # Permitir que o serviço execute com privilégios de root
+    # User=root
+    # Para usar o sudo, pode ser necessário definir o ambiente corretamente
+    #Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+    [Install]
+    WantedBy=multi-user.target
+
+EOF
+		echo "Testanto o serviço Hotspot..."
+		systemctl start hotstop
+		systemctl enable hotstop
+		systemctl status hotstop
+		systemctl daemon-reload
+		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/systemd/system/hotstop.service"
+		if [ "$?" = "1" ]; then
+			echo "As configurações serão atualizadas..." 
+			sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
+			echo "$SUDO_USER ALL=NOPASSWD: /etc/systemd/system/hotstop.service" >> /etc/sudoers
+		else
+			echo "As configurações estão atualizadas..."
+		fi
 	fi
-	service hostapd start
-	echo "Testanto o serviço Hotspot..."
-	service hotstop start
-	service hotstop status
 	desktop-menu --write-out-global
 elif [ "$opcao" = "2" ]; then
 	echo ""
 	if [ -d "/usr/share/Hotspot" ]; then
 		echo "Os arquivos serão removidos..." 
-		service hotstop stop
-		update-rc.d hostapd remove
-		update-rc.d dnsmasq remove
-		update-rc.d hotstop remove
-		update-rc.d tlp remove
+		if command -v "$comando" &>/dev/null; then
+			service hotstop stop
+			update-rc.d hostapd remove
+			update-rc.d dnsmasq remove
+			update-rc.d hotstop remove
+			update-rc.d tlp remove
+			rm /etc/init.d/hotstop
+		else
+			systemctl stop hotstop
+			systemctl disable hotstop
+			rm /etc/systemd/system/hotstop.service
+			systemctl daemon-reload
+		fi
 		apt remove -y hostapd dnsmasq wireless-tools iw tlp
 		apt autoremove -y
 		rm -rf /usr/share/Hotspot
@@ -378,16 +418,28 @@ elif [ "$opcao" = "2" ]; then
 	else
 		echo "O arquivo não encontrado..."
 	fi
-	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
-	if [ "$?" = "1" ]; then
-		echo "Configuração não encontrada..."
+	if command -v "$comando" &>/dev/null; then
+		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
+		if [ "$?" = "1" ]; then
+			echo "Configuração não encontrada..."
+		else
+			echo "A configuração será deletada... "
+			awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" '{print $1}' /etc/sudoers > /tmp/temp.txt
+			mv /tmp/temp.txt /etc/sudoers
+			echo "Os arquivos foram removidos..."
+		fi
 	else
-		echo "A configuração será deletada... "
-		awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" '{print $1}' /etc/sudoers > /tmp/temp.txt
-		mv /tmp/temp.txt /etc/sudoers
-		echo "Os arquivos foram removidos..."
-		desktop-menu --write-out-global
-	fi	 
+		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/systemd/system/hotstop.service"
+		if [ "$?" = "1" ]; then
+			echo "Configuração não encontrada..."
+		else
+			echo "A configuração será deletada... "
+			awk -F "$SUDO_USER ALL=NOPASSWD: /etc/systemd/system/hotstop.service" '{print $1}' /etc/sudoers > /tmp/temp.txt
+			mv /tmp/temp.txt /etc/sudoers
+			echo "Os arquivos foram removidos..."
+		fi
+	fi	
+	desktop-menu --write-out-global 
 elif [ "$opcao" = "3" ]; then
 	echo -e "\nSaindo do instalador...\n" 
 else
