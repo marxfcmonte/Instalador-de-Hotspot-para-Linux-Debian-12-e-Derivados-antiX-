@@ -2,7 +2,7 @@
 
 echo "
 Desenvolvido por Marx F. C. Monte
-Instalador de Hotspot v 1.6 (2025)
+Instalador de Hotspot v 1.8 (2025)
 Para a Distribuição Debian 12 e derivados (antiX 23)
 "
 
@@ -23,6 +23,11 @@ read -p "OPÇÃO: " opcao
 
 if [ "$opcao" = "1" ]; then
 	echo -e "\nInstalação sendo iniciada...\n"	
+	conexoes=`ifconfig -a | grep broadcast -c`
+	if [ "$conexoes" -lt 2 ]; then
+        echo -e "Deve haver pelo menos 2 conexões ativas (Ethernet e Wi-Fi)...\n"
+        exit 1        
+    fi
 	if [ -e "/usr/share/Hotspot/install.conf" ]; then
 		echo "A instalação dos pacotes não será necessária..."
 	else
@@ -48,40 +53,16 @@ if [ "$opcao" = "1" ]; then
 	service dnsmasq stop
 
 	sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
-
-	echo -e "\nVerifique o nome da interface de rede Ethernet\n"
-
-	ip addr | grep "th"
-	echo
-	read -p "Se o nome da interface de rede Ethernet é eth0 aperte 
-Enter para continuar, se não digite o nome da interface: " ethe
-
-	echo -e "\nVerifique o nome da interface de rede Wi-Fi\n"
-
-	ip addr | grep "lan"
-	echo
-	read -p "Se o nome da interface de rede Wi-Fi é wlan0 aperte 
-Enter para continuar, se não digite o nome da interface: " wifi
-	echo
+	
+	interfaces=( `ifconfig -a | grep broadcast -B 1 | cut -d ":" -f1 -s | sed 's/ //g'` )
+	ethe=${interfaces[0]}
+	wifi=${interfaces[1]}
+	
+	echo -e "\nNome da interface de rede Ethernet: $ethe"
+	echo -e "Nome da interface de rede Wi-Fi: $wifi"
 	read -p "Nome da rede Wi-Fi (SSID): " rede
 	read -p "Senha da rede Wi-Fi: " senha
 	echo 
-
-	if [ "$ethe" = "" ]; then
-		ethe="eth0"
-		echo "O nome da interface de rede Ethernet (PADRÃO): $ethe"
-	else
-		echo "O nome da interface de rede substituída com sucesso!
-O nome da interface de rede Etherne: $ethe"
-	fi
-
-	if [ "$wifi" = "" ]; then
-		wifi="wlan0"
-		echo "O nome da interface de rede Wi-Fi (PADRÃO): $wifi"	
-	else
-		echo "O nome da interface de rede substituída com sucesso!
-O nome da interface de rede Wi-Fi: $wifi"
-	fi
 
 	cat <<EOF > /etc/dnsmasq.conf
 log-facility=/var/log/dnsmasq.log
