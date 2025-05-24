@@ -25,8 +25,8 @@ if [ "$opcao" = "1" ]; then
 	echo -e "\nInstalação sendo iniciada...\n"	
 	conexoes=`ifconfig -a | grep broadcast -c`
 	if [ "$conexoes" -lt 2 ]; then
-        echo -e "Deve haver pelo menos 2 conexões ativas (Ethernet e Wi-Fi)...\n"
-        exit 1        
+        	echo -e "Deve haver pelo menos 2 conexões ativas (Ethernet e Wi-Fi)...\n"
+        	exit 1        
     fi
 	if [ -e "/usr/share/Hotspot/install.conf" ]; then
 		echo "A instalação dos pacotes não será necessária..."
