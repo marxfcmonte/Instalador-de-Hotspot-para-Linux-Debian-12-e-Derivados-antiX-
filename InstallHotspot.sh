@@ -23,7 +23,7 @@ read -p "OPÇÃO: " opcao
 
 if [ "$opcao" = "1" ]; then
 	echo -e "\nInstalação sendo iniciada...\n"	
-	conexoes=`ifconfig -a | grep broadcast -c`
+	conexoes=$(ifconfig -a | grep broadcast -c)
 	if [ "$conexoes" -lt 2 ]; then
         	echo -e "Deve haver pelo menos 2 conexões ativas (Ethernet e Wi-Fi)...\n"
         	exit 1        
@@ -54,7 +54,7 @@ if [ "$opcao" = "1" ]; then
 
 	sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 	
-	interfaces=( `ifconfig -a | grep broadcast -B 1 | cut -d ":" -f1 -s | sed 's/ //g'` )
+	interfaces=( $(ifconfig -a | grep broadcast -B 1 | cut -d ":" -f1 -s | sed 's/ //g') )
 	ethe=${interfaces[0]}
 	wifi=${interfaces[1]}
 	
