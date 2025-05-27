@@ -12,7 +12,6 @@ antes de inicializar o programa.\n"
 
 	exit 1	
 fi
-comando=update-rc.d
 conexoes=$(ifconfig -a | grep broadcast -c)
 if [ "$conexoes" -lt 2 ]; then
 	echo -e "\nDeve haver pelo menos 2 interfaces ativas (Ethernet e Wi-Fi)...\n
@@ -85,6 +84,7 @@ EOF
 	iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
 	iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 	echo '1' > /proc/sys/net/ipv4/ip_forward
+	chown $SUDO_USER:$SUDO_USER /etc/hostapd/hostapd.conf
 
 	cat <<EOF > /etc/hostapd/hostapd.conf
 interface=$wifi
@@ -114,10 +114,14 @@ connection.png
 https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-\
 para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/\
 hotspot.png			
+https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-\
+para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/\
+hotspot2.png
 EOF
 		wget -i /usr/share/Hotspot/hotspot_icones -P /tmp/
 		mv /tmp/connection.png  /usr/share/pixmaps/hotspot
 		mv /tmp/hotspot.png /usr/share/pixmaps/hotspot
+		mv /tmp/hotspot2.png /usr/share/pixmaps/hotspot
 	fi
 	cat <<EOF > /usr/share/Hotspot/StartHotspot.sh
 #!/bin/bash
@@ -176,6 +180,54 @@ sleep 5
 exit 0
 
 EOF
+	fim=EOF
+	cat <<EOF > /usr/share/Hotspot/HotspotLogin.sh
+#!/bin/bash
+senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
+if [[ -z "\$senha" ]]; then
+	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
+	exit 1
+fi
+clear
+echo \$senha|sudo -S -p "" service hostapd stop
+sudo service dnsmasq stop
+sudo sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
+sudo ifconfig $wifi up
+sudo ifconfig $wifi 192.168.137.1/24
+sudo iptables -t nat -F
+sudo iptables -F 
+sudo iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
+sudo iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
+sudo echo '1' > /proc/sys/net/ipv4/ip_forward
+clear
+rede=\$(dialog --inputbox "Nome da rede Wi-Fi (SSID)" 10 45 --stdout)
+clear
+senha=\$(dialog --inputbox "Senha da rede Wi-Fi" 10 45 --stdout)
+clear
+sudo cat <<$fim > /etc/hostapd/hostapd.conf
+interface=$wifi
+driver=nl80211
+channel=1
+
+ssid=\$rede
+wpa=2
+wpa_passphrase=\$senha
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=CCMP
+# Altera as chaves transmitidas/multidifundidas após esse número de segundos.
+wpa_group_rekey=600
+# Troca a chave mestra após esse número de segundos. A chave mestra é usada como base.
+wpa_gmk_rekey=86400
+
+$fim
+
+sudo service hostapd start
+sudo service dnsmasq start
+
+exit 0
+
+EOF
+
 
 	cat <<EOF > /usr/share/Hotspot/StopHotspot.sh
 #!/bin/bash
@@ -208,24 +260,24 @@ Icon=/usr/share/pixmaps/hotspot/connection.png
 
 EOF
 	
-	cat <<EOF > /home/$SUDO_USER/Desktop/RStarHotspot.desktop
+	cat <<EOF > /usr/share/applications/HotspotLogin.desktop
 [Desktop Entry]
 Version=1.0
 Type=Application
 Terminal=false
-Name=Restart do Hotspot
-Name[pt_BR]=Restart do Hotspot
-Exec=roxterm -e "sudo service hotstop restart"
+Name=Altera o login do Hotspot
+Name[pt_BR]=Altera o login do Hotspot
+Exec=roxterm -e "bash -c /usr/share/Hotspot/HotspotLogin.sh"
 Terminal=false
 StartupNotify=true
-Comment=Reinicia o hotspot
-Comment[pt_BR]=Reinicia o hotspot
+Comment=Altera o login do Hotspot
+Comment[pt_BR]=Altera o login do Hotspot
 Keywords=hotspot;internet;network;
 Keywords[pt_BR]=internet;network;hotspot;
 Categories=Network;WebBrowser;
 GenericName=Restart do Hotspot
 GenericName[pt_BR]=Restart do Hotspot
-Icon=/usr/share/pixmaps/hotspot/connection.png
+Icon=/usr/share/pixmaps/hotspot/hotspot2.png
 
 EOF
 	
@@ -250,31 +302,15 @@ Icon=/usr/share/pixmaps/hotspot/hotspot.png
 
 EOF
 	
-	cat <<EOF > /home/$SUDO_USER/Desktop/StopHotspot.desktop
-[Desktop Entry]
-Version=1.0
-Type=Application
-Terminal=false
-Name=Finaliza o Hotspot
-Name[pt_BR]=Finaliza o Hotspot
-Exec=roxterm -e "sudo service hotstop stop"
-Terminal=false
-StartupNotify=true
-Comment=Finaliza o hotspot
-Comment[pt_BR]=Finaliza o hotspot
-Keywords=hotspot;internet;network;
-Keywords[pt_BR]=internet;network;hotspot;
-Categories=Network;WebBrowser;
-GenericName=Restart do Hotspot
-GenericName[pt_BR]=Restart do Hotspot
-Icon=/usr/share/pixmaps/hotspot/hotspot.png
-
-EOF
+	cp /usr/share/applications/RStarHotspot.desktop /home/$SUDO_USER/Desktop
+	cp /usr/share/applications/HotspotLogin.desktop /home/$SUDO_USER/Desktop
+	cp /usr/share/applications/StopHotspot.desktop /home/$SUDO_USER/Desktop
 	echo "Os atalhos na Àrea de trabalho foram criados..."
 	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStarHotspot.desktop /usr/share/applications/StopHotspot.desktop 
-	chmod 775 /home/$SUDO_USER/Desktop/RStarHotspot.desktop /home/$SUDO_USER/Desktop/StopHotspot.desktop
-	if command -v "$comando" &>/dev/null; then
-		cat <<EOF > /etc/init.d/hotstop
+	chmod 775 /home/$SUDO_USER/Desktop/*.desktop
+	chown $SUDO_USER:$SUDO_USER /home/$SUDO_USER/Desktop/*.desktop
+	
+	cat <<EOF >  /etc/init.d/hotstop
 #!/bin/sh
 
 ### BEGIN INIT INFO
@@ -314,76 +350,38 @@ esac
 exit 0
 
 EOF
-		echo "Testanto o serviço Hotspot..."
-		chmod +x /etc/init.d/hotstop
-		update-rc.d hotstop defaults
-		update-rc.d hostapd defaults
-		update-rc.d dnsmasq defaults
-		update-rc.d tlp defaults
-		service hotstop start
-		service hotstop status
-		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
-		if [ "$?" = "1" ]; then
-			echo "As configurações serão atualizadas..." 
-			sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
-			echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" >> /etc/sudoers
-		else
-			echo "As configurações estão atualizadas..."
-		fi
+	chmod +x /etc/init.d/hotstop
+	update-rc.d hotstop defaults
+	update-rc.d hostapd defaults
+	update-rc.d dnsmasq defaults
+	update-rc.d tlp defaults
+	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
+	if [ "$?" = "1" ]; then
+		echo "As configurações serão atualizadas..." 
+		sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
+		echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" >> /etc/sudoers
 	else
-		cat <<EOF >  /etc/systemd/system/hotstop.service
-[Unit]
-    Description=hotstop
-    After=network.target
-
-    [Service]
-    Type=simple
-    ExecStart=/usr/share/Hotspot/StartHotspot.sh
-    
-    # Permitir que o serviço execute com privilégios de root
-    # User=root
-    # Para usar o sudo, pode ser necessário definir o ambiente corretamente
-    #Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-    [Install]
-    WantedBy=multi-user.target
-
-EOF
-		echo "Testanto o serviço Hotspot..."
-		systemctl start hotstop
-		systemctl enable hotstop
-		systemctl status hotstop
-		systemctl daemon-reload
-		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/systemd/system/hotstop.service"
-		if [ "$?" = "1" ]; then
-			echo "As configurações serão atualizadas..." 
-			sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
-			echo "$SUDO_USER ALL=NOPASSWD: /etc/systemd/system/hotstop.service" >> /etc/sudoers
-		else
-			echo "As configurações estão atualizadas..."
-		fi
+		echo "As configurações estão atualizadas..."
 	fi
+	service hostapd start
+	echo "Testanto o serviço Hotspot..."
+	service hotstop start
+	service hotstop status
 	desktop-menu --write-out-global
 elif [ "$opcao" = "2" ]; then
 	echo ""
 	if [ -d "/usr/share/Hotspot" ]; then
 		echo "Os arquivos serão removidos..." 
-		if command -v "$comando" &>/dev/null; then
-			service hotstop stop
-			update-rc.d hostapd remove
-			update-rc.d dnsmasq remove
-			update-rc.d hotstop remove
-			update-rc.d tlp remove
-			rm /etc/init.d/hotstop
-		else
-			systemctl stop hotstop
-			systemctl disable hotstop
-			rm /etc/systemd/system/hotstop.service
-			systemctl daemon-reload
-		fi
+		service hotstop stop
+		update-rc.d hostapd remove
+		update-rc.d dnsmasq remove
+		update-rc.d hotstop remove
+		update-rc.d tlp remove
+		rm /etc/init.d/hotstop
+		rm -rf /usr/share/Hotspot
 		apt remove -y hostapd dnsmasq wireless-tools iw tlp
 		apt autoremove -y
-		rm -rf /usr/share/Hotspot
+		
 	else
 		echo "O diretório não encontrado..."
 	fi
@@ -392,6 +390,11 @@ elif [ "$opcao" = "2" ]; then
 		rm -rf /usr/share/pixmaps/hotspot
 	else
 		echo "O diretório não encontrado..."
+	fi
+	if [ -e "/etc/init.d/hotstop" ]; then
+		rm /etc/init.d/hotstop
+	else
+		echo "O arquivo não encontrado..."
 	fi
 	if [ -e "/usr/share/applications/RStarHotspot.desktop" ]; then
 		rm /usr/share/applications/RStarHotspot.desktop
@@ -408,6 +411,11 @@ elif [ "$opcao" = "2" ]; then
 	else
 		echo "O arquivo não encontrado..."
 	fi
+	if [ -e "/home/$SUDO_USER/Desktop/HotspotLogin.desktop" ]; then
+		rm /home/$SUDO_USER/Desktop/HotspotLogin.desktop
+	else
+		echo "O arquivo não encontrado..."
+	fi
 	if [ -e "/home/$SUDO_USER/Desktop/StopHotspot.desktop" ]; then
 		rm /home/$SUDO_USER/Desktop/StopHotspot.desktop
 	else
@@ -418,28 +426,16 @@ elif [ "$opcao" = "2" ]; then
 	else
 		echo "O arquivo não encontrado..."
 	fi
-	if command -v "$comando" &>/dev/null; then
-		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
-		if [ "$?" = "1" ]; then
-			echo "Configuração não encontrada..."
-		else
-			echo "A configuração será deletada... "
-			awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" '{print $1}' /etc/sudoers > /tmp/temp.txt
-			mv /tmp/temp.txt /etc/sudoers
-			echo "Os arquivos foram removidos..."
-		fi
+	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
+	if [ "$?" = "1" ]; then
+		echo "Configuração não encontrada..."
 	else
-		cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/systemd/system/hotstop.service"
-		if [ "$?" = "1" ]; then
-			echo "Configuração não encontrada..."
-		else
-			echo "A configuração será deletada... "
-			awk -F "$SUDO_USER ALL=NOPASSWD: /etc/systemd/system/hotstop.service" '{print $1}' /etc/sudoers > /tmp/temp.txt
-			mv /tmp/temp.txt /etc/sudoers
-			echo "Os arquivos foram removidos..."
-		fi
-	fi	
-	desktop-menu --write-out-global 
+		echo "A configuração será deletada... "
+		awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" '{print $1}' /etc/sudoers > /tmp/temp.txt
+		mv /tmp/temp.txt /etc/sudoers
+		echo "Os arquivos foram removidos..."
+		desktop-menu --write-out-global
+	fi	 
 elif [ "$opcao" = "3" ]; then
 	echo -e "\nSaindo do instalador...\n" 
 else
