@@ -41,7 +41,7 @@ if [ "$opcao" = "1" ]; then
 		echo "A instalação dos pacotes não será necessária..."
 	else
 		apt update && apt upgrade -y
-		apt install -y hostapd dnsmasq wireless-tools iw tlp
+		apt install -y hostapd dnsmasq wireless-tools iw tlp dialog
 	fi
 	if [ -d "/usr/share/Hotspot" ]; then
 		echo -e "O diretório Hotspot existe..."
@@ -190,7 +190,6 @@ if [[ -z "\$senha" ]]; then
 fi
 clear
 echo \$senha|sudo -S -p "" service hostapd stop
-sudo service dnsmasq stop
 sudo sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 sudo ifconfig $wifi up
 sudo ifconfig $wifi 192.168.137.1/24
