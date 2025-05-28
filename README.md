@@ -1,11 +1,17 @@
-# Instalador-de-Hotspot-para-Linux-Debian-12-e-Derivados-antiX-23
+# Instalador de Hotspot para Linux Debian e DerivadosantiX-23 (SysV)
 
-Arquivos InstallHotspot.sh e o executável, InstallHotspot, executar no terminal como root, use sudo ou su.
+Os arquivos InstallHotspot.sh, InstallHotspot e Installhotspot.deb  podem ser executados no terminal como root, usando o comando sudo ou su.
 
-Ele cria dois aolicativos, um para restart o Hotspot, e o outro para parar o serviço de Hotspot. Além disso, deixar o serviço de Hotspot com inicialização automática com a inicialização do sistema. (SysV)
+Ele desenvolve três softwares: um para restabelecer a rede Wi-Fi, um para mudar o login da rede Wi-Fi e, por fim, um para encerrar o serviço de rede Wi-Fi. Além disso, permite que o serviço de emulação de rede Wi-Fi seja iniciado automaticamente com a inicialização do sistema. (SysV)
 
 Cria atalhos para a Área de trabalho e no menu dos aplicativos do sistema.
 
-# Totalmente automatizado
+## Dependências
 
-Agora com pacote Deb, Installhotspot.deb, para uma instalação automatizada pelo gerenciador de pacotes Deb sem precisar do terminal. 
+- hostapd dnsmasq wireless-tools iw tlp dialog (A dependênia **tlp** é instalada devido ao pacote **iw**)
+
+## Totalmente automatizado.
+
+Ele reconhece as interfaces e faz as configurações, apenas solicitando do usuário o nome da rede Wi-FI e senha.
+
+Agora com pacote Deb, Installhotspot.deb, para uma instalação automatizada pelo gerenciador de pacotes Deb sem precisar do terminal.
