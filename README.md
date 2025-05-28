@@ -12,6 +12,6 @@ Cria atalhos para a Área de trabalho e no menu dos aplicativos do sistema.
 
 ## Totalmente automatizado.
 
-Ele reconhece as Interfaces e faz as configurações, apenas solicitando do usuário o nome da rede Wi-FI e senha.
+Ele reconhece as Interfaces e faz as configurações, apenas solicitando do usuário o nome para a rede Wi-FI e senha.
 
 Agora com pacote Deb, Installhotspot.deb, para uma instalação automatizada pelo gerenciador de pacotes Deb sem precisar do terminal.
