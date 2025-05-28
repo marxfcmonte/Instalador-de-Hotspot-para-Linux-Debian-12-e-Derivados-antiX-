@@ -1,4 +1,4 @@
-# Instalador de Hotspot para Linux Debian e DerivadosantiX-23 (SysV)
+# Instalador de Hotspot para Linux Debian e (Derivados antiX - SysV)
 
 Os arquivos InstallHotspot.sh, InstallHotspot e Installhotspot.deb  podem ser executados no terminal como root, usando o comando sudo ou su.
 
