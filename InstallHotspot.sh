@@ -1,25 +1,30 @@
 #!/bin/bash
 
-echo "
-Desenvolvido por Marx F. C. Monte
-Instalador de Hotspot v 1.8 (2025)
-Para a Distribuição Debian 12 e derivados (antiX 23)\
-"
-
 if [ "$USER" != "root" ]; then
 	echo -e "Use comando 'sudo'  ou comando 'su' 
 antes de inicializar o programa.\n"
 
 	exit 1	
 fi
+if ! [ -e "/usr/bin/dialog" ]; then
+	apt install -y dialog
+fi
+configuracao="Para a Distribuição Debian 12 e derivados (antiX 23)"
+cont="$[${#configuracao} + 4]"
+dialog --title "Desenvolvedor" --infobox "Desenvolvido por Marx F. C. Monte\n
+Instalador de Hotspot v 1.8 (2025)\n
+Para a Distribuição Debian 12 e derivados (antiX 23)" 5 $cont
+sleep 3
+clear
 conexoes=$(ifconfig -a | grep broadcast -c)
 if [ "$conexoes" -lt 2 ]; then
-	echo -e "\nDeve haver pelo menos 2 interfaces ativas (Ethernet e Wi-Fi)...\n
-Instalação finalizada...\n"
+	configuracao="Deve haver pelo menos 2 interfaces ativas (Ethernet e Wi-Fi)..."
+	cont="$[${#configuracao} + 4]"
+	dialog --title "ERRO" --infobox "$configuracao\nInstalação finalizada." 4 $cont
+	sleep 3
+	clear
 	exit 1        
 fi
-sleep 5
-clear
 configuracao="SETAS PARA ESCOLHER, ESPAÇO PARA MUDAR E ENTER PARA CONFIRMAR"
 cont="$[${#configuracao} + 4]"
 opcao=$(dialog --title "MENU" --radiolist "$configuracao" 10 $cont 3 \
@@ -53,7 +58,7 @@ case $opcao in
 		clear
 	else
 		apt update && apt upgrade -y
-		apt install -y hostapd dnsmasq wireless-tools iw tlp dialog
+		apt install -y hostapd dnsmasq wireless-tools iw tlp
 	fi
 	if [ -d "/usr/share/Hotspot" ]; then
 		configuracao="O diretório Hotspot existe..."
@@ -176,7 +181,6 @@ service dnsmasq start
 exit 0
 
 EOF
-
 	cat <<EOF > /usr/share/Hotspot/RStarHotspot.sh
 #!/bin/bash
 
@@ -218,7 +222,7 @@ EOF
 	cat <<EOF > /usr/share/Hotspot/HotspotLogin.sh
 #!/bin/bash
 senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
-if [[ -z "\$senha" ]]; then
+if [ -z "\$senha" ]; then
 	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
 	exit 1
 fi
@@ -260,7 +264,6 @@ sudo service dnsmasq start
 exit 0
 
 EOF
-
 
 	cat <<EOF > /usr/share/Hotspot/StopHotspot.sh
 #!/bin/bash
@@ -344,7 +347,7 @@ EOF
 	dialog --infobox "$configuracao" 3 $cont
 	sleep 3
 	clear
-	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/RStarHotspot.desktop /usr/share/applications/StopHotspot.desktop 
+	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/*.desktop
 	chmod 775 /home/$SUDO_USER/Desktop/*.desktop
 	chown $SUDO_USER:$SUDO_USER /home/$SUDO_USER/Desktop/*.desktop
 	
@@ -453,70 +456,84 @@ EOF
 		clear
 	fi
 	if [ -e "/etc/init.d/hotstop" ]; then
-		configuracao="O arquivo será removido..."
+		configuracao="O arquivo hotstop será removido..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 		rm /etc/init.d/hotstop
 	else
-		configuracao="O arquivo não encontrado..."
+		configuracao="O arquivo hotstop não encontrado..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/usr/share/applications/RStarHotspot.desktop" ]; then
-		configuracao="O arquivo será removido..."
+		configuracao="O arquivo RStarHotspot será removido..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 		rm /usr/share/applications/RStarHotspot.desktop
 	else
-		configuracao="O arquivo não encontrado..."
+		configuracao="O arquivo RStarHotspot não encontrado..."
+		cont="$[${#configuracao} + 4]"
+		dialog --infobox "$configuracao" 3 $cont
+		sleep 3
+		clear
+	fi
+	if [ -e "/usr/share/applications/HotspotLogin.desktop" ]; then
+		configuracao="O arquivo HotspotLogin será removido..."
+		cont="$[${#configuracao} + 4]"
+		dialog --infobox "$configuracao" 3 $cont
+		sleep 3
+		clear
+		rm /usr/share/applications/HotspotLogin.desktop
+	else
+		configuracao="O arquivo HotspotLogin não encontrado..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/usr/share/applications/StopHotspot.desktop" ]; then
-		configuracao="O arquivo será removido..."
+		configuracao="O arquivo StopHotspot será removido..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 		rm /usr/share/applications/StopHotspot.desktop
 	else
-		configuracao="O arquivo não encontrado..."
+		configuracao="O arquivo StopHotspot não encontrado..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/RStarHotspot.desktop" ]; then
-		configuracao="O arquivo será removido..."
+		configuracao="O arquivo RStarHotspot.desktop será removido..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 		rm /home/$SUDO_USER/Desktop/RStarHotspot.desktop
 	else
-		configuracao="O arquivo não encontrado..."
+		configuracao="O arquivo RStarHotspot.desktop não encontrado..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/HotspotLogin.desktop" ]; then
-		configuracao="O arquivo será removido..."
+		configuracao="O arquivo HotspotLogin.desktop será removido..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 		rm /home/$SUDO_USER/Desktop/HotspotLogin.desktop
 	else
-		configuracao="O arquivo não encontrado..."
+		configuracao="O arquivo HotspotLogin.desktop não encontrado..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
@@ -536,15 +553,15 @@ EOF
 		sleep 3
 		clear
 	fi
-	if [ -e "/etc/hostapd/hostapd.conf" ]; then
-		configuracao="O arquivo será removido..."
+	if [ -s "/etc/hostapd/hostapd.conf" ]; then
+		configuracao="A configuração será removida..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
 		clear
 		echo "" > /etc/hostapd/hostapd.conf
 	else
-		configuracao="O arquivo não encontrado..."
+		configuracao="Configuração não encontrada..."
 		cont="$[${#configuracao} + 4]"
 		dialog --infobox "$configuracao" 3 $cont
 		sleep 3
