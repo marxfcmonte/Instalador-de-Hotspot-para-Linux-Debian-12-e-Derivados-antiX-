@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if ! [ -e "/usr/bin/dialog" ]; then
+	echo -e "Dialog não instalado e será instaladp...\n"
+	sudo apt install -y dialog
+fi
 senha=$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
 if [ -z "\$senha" ]; then
 	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
