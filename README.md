@@ -8,7 +8,12 @@ Cria atalhos para a Área de trabalho e no menu dos aplicativos do sistema.
 
 ## Dependências
 
-- hostapd dnsmasq wireless-tools iw tlp dialog (A dependênia **tlp** é instalada devido ao pacote **iw**)
+- hostapd
+- dnsmasq
+- wireless-tools
+- iw
+- tlp (A dependênia **tlp** é instalada devido ao pacote **iw**)
+- dialog (A dependênia **dialog** é nativa em diversas distribuições baseadas em Debian, caso não haja será instalado)
 
 ## Totalmente automatizado.
 
