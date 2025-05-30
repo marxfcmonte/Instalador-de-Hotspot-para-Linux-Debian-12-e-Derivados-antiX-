@@ -1,6 +1,6 @@
 # Instalador de Hotspot para Linux Debian e (Derivados antiX - SysV)
 
-Os arquivos InstallHotspot.sh, InstallHotspot e Installhotspot.deb  podem ser executados no terminal como root, usando o comando sudo ou su.
+Os arquivos InstallHotspot.sh, InstallHotspot e Installhotspot.deb  devem ser executados no terminal como root, usando o comando sudo ou su.
 
 Ele desenvolve três softwares: um para restabelecer a rede Wi-Fi, um para mudar o login da rede Wi-Fi e, por fim, um para encerrar o serviço de rede Wi-Fi. Além disso, permite que o serviço de rede Wi-Fi seja iniciado automaticamente com a inicialização do sistema. (SysV)
 
