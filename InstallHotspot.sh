@@ -422,7 +422,7 @@ EOF
 	;;
 	2)
 	if [ -d "/usr/share/Hotspot" ]; then
-		texto="Os arquivos serão removidos..."
+		texto="O diretório Hotspot será removido..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
@@ -437,133 +437,133 @@ EOF
 		apt autoremove -y
 		clear
 	else
-		texto="O diretório não encontrado..."
+		texto="O diretório Hotspot não encontrado..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -d "/usr/share/pixmaps/hotspot" ]; then
-		texto="Os arquivos serão removidos..."
+		texto="O diretório ../pixmaps/hotspot será removido..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		rm -rf /usr/share/pixmaps/hotspot
 	else
-		texto="O diretório não encontrado..."
+		texto="O diretório ../pixmaps/hotspot não encontrado..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/etc/init.d/hotstop" ]; then
-		texto="O arquivo hotstop será removido..."
+		texto="O arquivo ../init.d/hotstop será removido..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		rm /etc/init.d/hotstop
 	else
-		texto="O arquivo hotstop não encontrado..."
+		texto="O arquivo ../init.d/hotstop não encontrado..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/usr/share/applications/RStarHotspot.desktop" ]; then
-		texto="O arquivo RStarHotspot será removido..."
+		texto="O arquivo ../applications/RStarHotspot.desktop será removido..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		rm /usr/share/applications/RStarHotspot.desktop
 	else
-		texto="O arquivo RStarHotspot não encontrado..."
+		texto="O arquivo ../applications/RStarHotspot.desktop não encontrado..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/usr/share/applications/HotspotLogin.desktop" ]; then
-		texto="O arquivo HotspotLogin será removido..."
+		texto="O arquivo ../applications/HotspotLogin.desktop será removido..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		rm /usr/share/applications/HotspotLogin.desktop
 	else
-		texto="O arquivo HotspotLogin não encontrado..."
+		texto="O arquivo ../applications/HotspotLogin.desktop não encontrado..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/usr/share/applications/StopHotspot.desktop" ]; then
-		texto="O arquivo StopHotspot será removido..."
+		texto="O arquivo ../applications/StopHotspot.desktop será removido..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		rm /usr/share/applications/StopHotspot.desktop
 	else
-		texto="O arquivo StopHotspot não encontrado..."
+		texto="O arquivo ../applications/StopHotspot.desktop não encontrado..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/RStarHotspot.desktop" ]; then
-		texto="O arquivo RStarHotspot.desktop será removido..."
+		texto="O arquivo ../Desktop/RStarHotspot.desktop será removido..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		rm /home/$SUDO_USER/Desktop/RStarHotspot.desktop
 	else
-		texto="O arquivo RStarHotspot.desktop não encontrado..."
+		texto="O arquivo ../Desktop/RStarHotspot.desktop não encontrado..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/HotspotLogin.desktop" ]; then
-		texto="O arquivo HotspotLogin.desktop será removido..."
+		texto="O arquivo ../Desktop/HotspotLogin.desktop será removido..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		rm /home/$SUDO_USER/Desktop/HotspotLogin.desktop
 	else
-		texto="O arquivo HotspotLogin.desktop não encontrado..."
+		texto="O arquivo ../Desktop/HotspotLogin.desktop não encontrado..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/StopHotspot.desktop" ]; then
-		texto="O arquivo será removido..."
+		texto="O arquivo ../Desktop/StopHotspot.desktop será removido..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		rm /home/$SUDO_USER/Desktop/StopHotspot.desktop
 	else
-		texto="O arquivo não encontrado..."
+		texto="O arquivo ../Desktop/StopHotspot.desktop não encontrado..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	fi
-	if [ -s "/etc/hostapd/hostapd.conf" ]; then
-		texto="A configuração será removida..."
+	if [ "$(cat "/etc/hostapd/hostapd.conf")" ]; then
+		texto="A configuração será removida em hostapd.conf..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		echo "" > /etc/hostapd/hostapd.conf
 	else
-		texto="Configuração não encontrada..."
+		texto="Configuração não encontrada em hostapd.conf..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
@@ -571,20 +571,20 @@ EOF
 	fi
 	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
 	if [ "$?" = "1" ]; then
-		texto="Configuração não encontrada..."
+		texto="Configuração não encontrada em ../etc/sudoers..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 	else
-		texto="A configuração será deletada..."
+		texto="A configuração será deletada em ../etc/sudoers..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
 		clear
 		awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" '{print $1}' /etc/sudoers > /tmp/temp.txt
 		mv /tmp/temp.txt /etc/sudoers
-		texto="Os arquivos foram removidos..."
+		texto="Configuração foi removida ../etc/sudoers..."
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
