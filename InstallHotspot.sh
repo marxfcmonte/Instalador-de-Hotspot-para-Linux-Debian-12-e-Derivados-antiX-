@@ -25,12 +25,12 @@ if [ "$conexoes" -lt 2 ]; then
 	clear
 	exit 1
 fi
-texto="SETAS PARA ESCOLHER, ESPAÇO PARA MUDAR E ENTER PARA CONFIRMAR"
+texto="SETAS PARA ESCOLHER E ENTER PARA CONFIRMAR"
 cont="$[${#texto} + 4]"
-opcao=$(dialog --title "MENU" --radiolist "$texto" 10 $cont 3 \
-"1" "PARA INSTALAR" ON  \
-"2" "PARA REMOVER" OFF \
-"3" "PARA SAIR" OFF \
+opcao=$(dialog --title "MENU" --menu "$texto" 10 $cont 3 \
+"1" "PARA INSTALAR" \
+"2" "PARA REMOVER" \
+"3" "PARA SAIR" \
 --stdout)
 clear
 case $opcao in
@@ -598,6 +598,14 @@ EOF
 	dialog --infobox "$texto" 3 $cont
 	sleep 3
 	clear
+	;;
+	*)
+	texto="Instalação cancelada..."
+	cont="$[${#texto} + 4]"
+	dialog --infobox "$texto" 3 $cont
+	sleep 3
+	clear
+	exit 1
 	;;
 esac
 
