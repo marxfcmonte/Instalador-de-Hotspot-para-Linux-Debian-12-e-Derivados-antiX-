@@ -7,8 +7,14 @@ antes de inicializar o programa.\n"
 	exit 1
 fi
 if ! [ -e "/usr/bin/dialog" ]; then
-	apt install -y dialog
+	echo -e "Dialog não instalado e será instaladp...\n"
+	sudo apt install -y dialog
 fi
+if ! [ -e "/usr/bin/roxterm" ]; then
+	echo -e "Roxterm não instalado e será instaladp...\n"
+	apt install -y roxterm
+fi
+
 texto="Para a Distribuição Debian 12 e derivados (antiX 23)"
 cont="$[${#texto} + 4]"
 dialog --title "Desenvolvedor" --infobox "Desenvolvido por Marx F. C. Monte\n
@@ -51,7 +57,14 @@ case $opcao in
 	# Coloque '$cont' no lugar de '35' para ajuste automático de largura
 	senha=$(dialog --inputbox "$texto" 10 35 --stdout)
 	clear
-	echo
+	if [ -z "$rede" -o -z "$senha" ]; then
+		texto="Nome da rede Wi-Fi (SSID) ou Senha da rede Wi-Fi não informados."
+		cont="$[${#texto} + 4]"
+		dialog --infobox "$texto" 3 $cont
+		sleep 3
+		clear
+		exit 1
+	fi
 	if [ -e "/usr/share/Hotspot/install.conf" ]; then
 		texto="A instalação dos pacotes não será necessária..."
 		cont="$[${#texto} + 4]"
@@ -184,7 +197,7 @@ exit 0
 
 EOF
 	cat <<EOF > /usr/share/Hotspot/RStarHotspot.sh
-#!/bin/bash
+#!$SHELL
 
 service hostapd stop
 service dnsmasq stop
@@ -226,10 +239,13 @@ EOF
 senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
 if [ -z "\$senha" ]; then
 	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
+	sleep 3
+	clear
 	exit 1
 fi
 clear
 echo \$senha|sudo -S -p "" service hostapd stop
+sudo chown $SUDO_USER:$SUDO_USER /etc/hostapd/hostapd.conf
 sudo sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 sudo ifconfig $wifi up
 sudo ifconfig $wifi 192.168.137.1/24
@@ -242,8 +258,20 @@ clear
 rede=\$(dialog --inputbox "Nome da rede Wi-Fi (SSID)" 10 45 --stdout)
 clear
 senha=\$(dialog --inputbox "Senha da rede Wi-Fi" 10 45 --stdout)
+if [ -z "\$rede" -o -z "\$senha" ]; then
+	texto="Nome da rede Wi-Fi (SSID) ou Senha da rede Wi-Fi não informados."
+	cont="\$[\${#texto} + 4]"
+	dialog --infobox "\$texto" 3 \$cont
+	sleep 3
+	clear
+	sudo chown root:root /etc/hostapd/hostapd.conf
+	sudo service hostapd start
+	sudo service dnsmasq start
+	exit 1
+fi
+
 clear
-sudo cat <<$fim > /etc/hostapd/hostapd.conf
+cat <<$fim > /etc/hostapd/hostapd.conf
 interface=$wifi
 driver=nl80211
 channel=1
@@ -260,6 +288,7 @@ wpa_gmk_rekey=86400
 
 $fim
 
+sudo chown root:root /etc/hostapd/hostapd.conf
 sudo service hostapd start
 sudo service dnsmasq start
 
@@ -354,7 +383,7 @@ EOF
 	chown $SUDO_USER:$SUDO_USER /home/$SUDO_USER/Desktop/*.desktop
 
 	cat <<EOF >  /etc/init.d/hotstop
-#!/bin/sh
+#!$SHELL
 
 ### BEGIN INIT INFO
 # Provides:		hotspot
@@ -375,15 +404,15 @@ case "\$1" in
   start)
 	sleep 3
 	/usr/share/Hotspot/StartHotspot.sh
-	echo "Hotspot\e[32;1m iniciado\e[0m..." > /usr/share/Hotspot/hotspot.conf
+	echo -e "Hotspot\033[32m iniciado\033[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   stop)
 	/usr/share/Hotspot/StopHotspot.sh
-	echo "Hotspot\e[31;1m parado\e[0m..." > /usr/share/Hotspot/hotspot.conf
+	echo -e "Hotspot\033[31;1m parado\033[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   restart)
 	/usr/share/Hotspot/RStarHotspot.sh
-	echo "Hotspot\e[32;1m reiniciado\e[0m..." > /usr/share/Hotspot/hotspot.conf
+	echo -e "Hotspot\033[32;1m reiniciado\033[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   status)
 	cat /usr/share/Hotspot/hotspot.conf
