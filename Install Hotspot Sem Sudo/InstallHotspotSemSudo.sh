@@ -163,7 +163,7 @@ EOF
 		mv /tmp/hotspot2.png /usr/share/pixmaps/hotspot
 	fi
 	cat <<EOF > /usr/share/Hotspot/StartHotspot.sh
-#!/bin/bash
+#!$SHELL
 
 service hostapd stop
 service dnsmasq stop
@@ -182,7 +182,7 @@ exit 0
 
 EOF
 	cat <<EOF > /usr/share/Hotspot/RStarHotspot.sh
-#!/bin/bash
+#!$SHELL
 
 service hostapd stop
 service dnsmasq stop
@@ -220,10 +220,13 @@ exit 0
 EOF
 	fim=EOF
 	cat <<EOF > /usr/share/Hotspot/HotspotLogin.sh
-#!/bin/bash
+#!$SHELL
+
 senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
 if [ -z "\$senha" ]; then
 	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
+	sleep 3
+	clear
 	exit 1
 fi
 clear
@@ -280,7 +283,7 @@ exit 0
 EOF
 
 	cat <<EOF > /usr/share/Hotspot/StopHotspot.sh
-#!/bin/bash
+#!$SHELL
 
 service hostapd stop
 service dnsmasq stop
