@@ -15,3 +15,4 @@ executará.
 - wireless-tools
 - iw
 - tlp
+- roxterm
