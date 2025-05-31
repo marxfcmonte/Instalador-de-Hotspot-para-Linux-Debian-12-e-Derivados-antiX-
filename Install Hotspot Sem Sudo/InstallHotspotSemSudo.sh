@@ -1,8 +1,5 @@
 #!/bin/bash
 
-if ! [ -e "/usr/bin/dialog" ]; then
-	apt install -y dialog
-fi
 texto="Para a Distribuição Debian 12 e derivados (antiX 23)"
 cont="$[${#texto} + 4]"
 dialog --title "Desenvolvedor" --infobox "Desenvolvido por Marx F. C. Monte\n
@@ -390,15 +387,15 @@ case "\$1" in
   start)
 	sleep 3
 	/usr/share/Hotspot/StartHotspot.sh
-	echo "Hotspot\e[32;1m iniciado\e[0m..." > /usr/share/Hotspot/hotspot.conf
+	echo "Hotspot\33[32;1m iniciado\33[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   stop)
 	/usr/share/Hotspot/StopHotspot.sh
-	echo "Hotspot\e[31;1m parado\e[0m..." > /usr/share/Hotspot/hotspot.conf
+	echo "Hotspot\33[31;1m parado\33[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   restart)
 	/usr/share/Hotspot/RStarHotspot.sh
-	echo "Hotspot\e[32;1m reiniciado\e[0m..." > /usr/share/Hotspot/hotspot.conf
+	echo "Hotspot\33[32;1m reiniciado\33[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   status)
 	cat /usr/share/Hotspot/hotspot.conf
