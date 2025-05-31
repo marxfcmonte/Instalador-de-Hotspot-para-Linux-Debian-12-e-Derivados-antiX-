@@ -236,6 +236,7 @@ EOF
 	fim=EOF
 	cat <<EOF > /usr/share/Hotspot/HotspotLogin.sh
 #!/bin/bash
+
 senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
 if [ -z "\$senha" ]; then
 	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
@@ -383,7 +384,7 @@ EOF
 	chown $SUDO_USER:$SUDO_USER /home/$SUDO_USER/Desktop/*.desktop
 
 	cat <<EOF >  /etc/init.d/hotstop
-#!$SHELL
+#!/bin/sh
 
 ### BEGIN INIT INFO
 # Provides:		hotspot
@@ -404,15 +405,15 @@ case "\$1" in
   start)
 	sleep 3
 	/usr/share/Hotspot/StartHotspot.sh
-	echo -e "Hotspot\033[32m iniciado\033[0m..." > /usr/share/Hotspot/hotspot.conf
+	echo "Hotspot\033[32m iniciado\033[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   stop)
 	/usr/share/Hotspot/StopHotspot.sh
-	echo -e "Hotspot\033[31;1m parado\033[0m..." > /usr/share/Hotspot/hotspot.conf
+	echo "Hotspot\033[31;1m parado\033[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   restart)
 	/usr/share/Hotspot/RStarHotspot.sh
-	echo -e "Hotspot\033[32;1m reiniciado\033[0m..." > /usr/share/Hotspot/hotspot.conf
+	echo "Hotspot\033[32;1m reiniciado\033[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   status)
 	cat /usr/share/Hotspot/hotspot.conf
