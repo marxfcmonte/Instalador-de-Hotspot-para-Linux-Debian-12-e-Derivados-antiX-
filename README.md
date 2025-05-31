@@ -14,6 +14,7 @@ Cria atalhos para a Área de trabalho e no menu dos aplicativos do sistema.
 - iw
 - tlp (A dependênia **tlp** é instalada devido ao pacote **iw**)
 - dialog (A dependênia **dialog** é nativa em diversas distribuições baseadas em Debian, caso não haja será instalada)
+- roxterm (A dependênia **roxterm** é nativa em diversas distribuições baseadas em Debian, caso não haja será instalada)
 
 ## Totalmente automatizado.
 
