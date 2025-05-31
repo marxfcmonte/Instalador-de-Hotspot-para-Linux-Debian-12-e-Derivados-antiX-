@@ -29,7 +29,7 @@ case $opcao in
 	texto="Instalação sendo iniciada..."
 	cont="$[${#texto} + 4]"
 	dialog --infobox "$texto" 3 $cont
-	interfaces=( $(ifconfig -a | grep broadcast -B 1 | cut -d ":" -f1 -s | sed 's/ //g') )
+	interfaces=($(ifconfig -a | grep BROADCAST | cut -d ":" -f1))
 	ethe=${interfaces[0]}
 	wifi=${interfaces[1]}
 	sleep 5
@@ -177,6 +177,8 @@ iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 service hostapd start
 service dnsmasq start
+echo -e "Hotspot\033[32;1m iniciado\033[0m..." >\
+ /usr/share/Hotspot/hotspot.conf
 
 exit 0
 
@@ -208,10 +210,12 @@ iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 service hostapd start
 service dnsmasq start
-echo "Hotspot reiniciando..." > /usr/share/Hotspot/hotspot.conf
+echo -e "Hotspot\033[33;1m reiniciando\033[0m..." >\
+ /usr/share/Hotspot/hotspot.conf
 cat /usr/share/Hotspot/hotspot.conf
 sleep 5
-echo "Hotspot reiniciado..." > /usr/share/Hotspot/hotspot.conf
+echo -e "Hotspot\033[32;1m reiniciado\033[0m..." >\
+ /usr/share/Hotspot/hotspot.conf
 cat /usr/share/Hotspot/hotspot.conf
 sleep 5
 
@@ -267,9 +271,11 @@ wpa=2
 wpa_passphrase=\$senha
 wpa_key_mgmt=WPA-PSK
 wpa_pairwise=CCMP
-# Altera as chaves transmitidas/multidifundidas após esse número de segundos.
+# Altera as chaves transmitidas/multidifundidas 
+# após esse número de segundos.
 wpa_group_rekey=600
-# Troca a chave mestra após esse número de segundos. A chave mestra é usada como base.
+# Troca a chave mestra após esse número de segundos. 
+# A chave mestra é usada como base.
 wpa_gmk_rekey=86400
 
 $fim
@@ -277,6 +283,9 @@ $fim
 sudo chown root:root /etc/hostapd/hostapd.conf
 sudo service hostapd start
 sudo service dnsmasq start
+echo -e "Hotspot\033[32;1m iniciado\033[0m..." >\
+ /usr/share/Hotspot/hotspot.conf
+reset
 
 exit 0
 
@@ -287,6 +296,8 @@ EOF
 
 service hostapd stop
 service dnsmasq stop
+echo -e "Hotspot\033[31;1m parado\033[0m..." >\
+ /usr/share/Hotspot/hotspot.conf
 
 exit 0
 
@@ -390,15 +401,12 @@ case "\$1" in
   start)
 	sleep 3
 	/usr/share/Hotspot/StartHotspot.sh
-	echo "Hotspot\33[32;1m iniciado\33[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   stop)
 	/usr/share/Hotspot/StopHotspot.sh
-	echo "Hotspot\33[31;1m parado\33[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   restart)
 	/usr/share/Hotspot/RStarHotspot.sh
-	echo "Hotspot\33[32;1m reiniciado\33[0m..." > /usr/share/Hotspot/hotspot.conf
 	;;
   status)
 	cat /usr/share/Hotspot/hotspot.conf
@@ -419,7 +427,7 @@ EOF
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
-		clear
+		reset
 		sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
 		echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" >> /etc/sudoers
 	else
@@ -427,7 +435,7 @@ EOF
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
-		clear
+		reset
 	fi
 	service hostapd start
 	echo "Testanto o serviço Hotspot..."
@@ -590,7 +598,7 @@ EOF
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
-		clear
+		reset
 	else
 		texto="A configuração será deletada em ../etc/sudoers..."
 		cont="$[${#texto} + 4]"
@@ -603,7 +611,7 @@ EOF
 		cont="$[${#texto} + 4]"
 		dialog --infobox "$texto" 3 $cont
 		sleep 3
-		clear
+		reset
 		desktop-menu --write-out-global
 	fi
 	;;
@@ -612,14 +620,14 @@ EOF
 	cont="$[${#texto} + 4]"
 	dialog --infobox "$texto" 3 $cont
 	sleep 3
-	clear
+	reset
 	;;
 	*)
 	texto="Instalação cancelada..."
 	cont="$[${#texto} + 4]"
 	dialog --infobox "$texto" 3 $cont
 	sleep 3
-	clear
+	reset
 	exit 1
 	;;
 esac
