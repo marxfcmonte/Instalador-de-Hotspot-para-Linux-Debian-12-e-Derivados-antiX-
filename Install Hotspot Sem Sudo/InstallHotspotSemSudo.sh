@@ -91,7 +91,11 @@ case $opcao in
 		/usr/share/Hotspot/install.conf
 	fi
 
-	service dnsmasq stop
+	host="$(service hostapd status)"
+	dns="$(service dnsmasq status)"
+	if [ "$(echo "\$dns" | grep running)" ]; then
+		service dnsmasq stop
+	fi
 
 	sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 
@@ -105,7 +109,9 @@ log-queries
 EOF
 
 	service dnsmasq start
-	service hostapd stop
+	if ! [ "$(echo "$host" | grep "not running")" ]; then
+		service hostapd stop
+	fi
 
 	ifconfig $wifi up
 	ifconfig $wifi 192.168.137.1/24
@@ -115,7 +121,6 @@ EOF
 	iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
 	iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 	echo '1' > /proc/sys/net/ipv4/ip_forward
-	chown $SUDO_USER:$SUDO_USER /etc/hostapd/hostapd.conf
 
 	cat <<EOF > /etc/hostapd/hostapd.conf
 interface=$wifi
@@ -165,8 +170,14 @@ EOF
 	cat <<EOF > /usr/share/Hotspot/StartHotspot.sh
 #!$SHELL
 
-service hostapd stop
-service dnsmasq stop
+host="\$(service hostapd status)"
+dns="\$(service dnsmasq status)"
+if ! [ "\$(echo "\$host" | grep "not running")" ]; then
+	service hostapd stop
+fi
+if [ "\$(echo "\$dns" | grep running)" ]; then
+	service dnsmasq stop
+fi
 sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 ifconfig $wifi up
 ifconfig $wifi 192.168.137.1/24
@@ -186,20 +197,14 @@ EOF
 	cat <<EOF > /usr/share/Hotspot/RStarHotspot.sh
 #!$SHELL
 
-service hostapd stop
-service dnsmasq stop
-sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
-ifconfig $wifi up
-ifconfig $wifi 192.168.137.1/24
-iptables -t nat -F
-iptables -F
-iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
-iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
-echo '1' > /proc/sys/net/ipv4/ip_forward
-service hostapd start
-service dnsmasq start
-service hostapd stop
-service dnsmasq stop
+host="\$(service hostapd status)"
+dns="\$(service dnsmasq status)"
+if ! [ "\$(echo "\$host" | grep "not running")" ]; then
+	service hostapd stop
+fi
+if [ "\$(echo "\$dns" | grep running)" ]; then
+	service dnsmasq stop
+fi
 sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 ifconfig $wifi up
 ifconfig $wifi 192.168.137.1/24
@@ -234,7 +239,14 @@ if [ -z "\$senha" ]; then
 	exit 1
 fi
 clear
-echo \$senha|sudo -S -p "" service hostapd stop
+host="\$(echo \$senha|sudo -S -p "" service hostapd status)"
+dns="\$(sudo service dnsmasq status)"
+if ! [ "\$(echo "\$host" | grep "not running")" ]; then
+	sudo service hostapd stop
+fi
+if [ "\$(echo "\$dns" | grep running)" ]; then
+	sudo service dnsmasq stop
+fi
 sudo chown $SUDO_USER:$SUDO_USER /etc/hostapd/hostapd.conf
 sudo sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 sudo ifconfig $wifi up

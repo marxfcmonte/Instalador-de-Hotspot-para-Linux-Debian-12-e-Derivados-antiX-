@@ -21,11 +21,17 @@ fi
 local="$(pwd)"
 if ! [ -e "/bin/shc" ]; then
 	echo $senha|sudo -S -p "" apt install -y shc libc6-dev
-	shc -f "$local/InstallHotspotSemSudo.sh" -o "$local/InstallHotspotSemSudo"
-	sudo bash -c "$local/InstallHotspotSemSudo"
+	if ! [ -e "$local/InstallHotspotSemSudo.sh" ]; then
+		shc -f "$local/InstallHotspotSemSudo.sh" -o "$local/InstallHotspotSemSudo"
+	else
+		sudo bash -c "$local/InstallHotspotSemSudo"
+	fi	
 else
-	shc -f "$local/InstallHotspotSemSudo.sh" -o "$local/InstallHotspotSemSudo"
-	echo $senha|sudo -S -p "" bash -c "$local/InstallHotspotSemSudo"
+	if ! [ -e "$local/InstallHotspotSemSudo.sh" ]; then
+		shc -f "$local/InstallHotspotSemSudo.sh" -o "$local/InstallHotspotSemSudo"
+	else
+		echo $senha|sudo -S -p "" bash -c "$local/InstallHotspotSemSudo"
+	fi
 fi
 
 
