@@ -14,10 +14,6 @@ if [ -z "\$senha" ]; then
 	exit 1
 fi
 clear
-if ! [ -e "/usr/bin/roxterm" ]; then
-	echo -e "Roxterm não instalado e será instaladp...\n"
-	echo $senha|sudo -S -p "" apt install -y roxterm
-fi
 local="$(pwd)"
 if ! [ -e "/bin/shc" ]; then
 	echo $senha|sudo -S -p "" apt install -y shc libc6-dev
