@@ -1,5 +1,58 @@
 #!/bin/bash
 
+trim() {
+	# Desabilitação da verificação do shell=2048,2086
+    set -f
+    set -- $*
+    printf '%s\n' "${*//[[:space:]]/}"
+    set +f
+}
+
+Ppid(){
+	# Obter o ID do processo pai do PID
+	ppid="$(grep -i -F "PPid:" "/proc/${1:-$PPID}/status")"
+    ppid="$(trim "${ppid/PPid:}")"
+    printf "%s" "$ppid"
+
+}
+
+processo_nome() {
+    # Obter nome PID.
+    nome="$(< "/proc/${1:-$PPID}/comm")"
+    printf "%s" "$nome"
+}
+
+terminal() {
+    # Verificando $PPID para emulador de terminal.
+     while [[ -z "$term" ]]; do
+        pai="$(Ppid "$pai")"
+        [[ -z "$pai" ]] && break
+        nome="$(processo_nome "$pai")"
+
+        case ${nome// } in
+            "${SHELL/*\/}"|*"sh"|"screen"|"su"*) ;;
+
+            "login"*|*"Login"*|"init"|"(init)")
+                term="$(tty)"
+            ;;
+
+            "ruby"|"1"|"tmux"*|"systemd"|"sshd"*|"python"*|"USER"*"PID"*|"kdeinit"*|"launchd"*)
+                break
+            ;;
+
+            "gnome-terminal-") term="gnome-terminal" ;;
+            "urxvtd")          term="urxvt" ;;
+            *"nvim")           term="Neovim Terminal" ;;
+            *"NeoVimServer"*)  term="VimR Terminal" ;;
+
+            *)
+                # Corrigir problemas com nomes longos de processos no Linux.
+                term="${nome##*/}"
+            ;;
+        esac
+    done
+}
+
 if [ "$USER" != "root" ]; then
 	echo -e "Use comando 'sudo'  ou comando 'su'
 antes de inicializar o programa.\n"
@@ -10,11 +63,8 @@ if ! [ -e "/usr/bin/dialog" ]; then
 	echo -e "Dialog não instalado e será instaladp...\n"
 	sudo apt install -y dialog
 fi
-if ! [ -e "/usr/bin/roxterm" ]; then
-	echo -e "Roxterm não instalado e será instaladp...\n"
-	sudo apt install -y roxterm
-fi
 
+terminal
 texto="Para a Distribuição Debian 12 e derivados (antiX 23)"
 cont="$[${#texto} + 4]"
 dialog --title "Desenvolvedor" --infobox "Desenvolvido por Marx F. C. Monte\n
@@ -336,7 +386,7 @@ Type=Application
 Terminal=false
 Name=Restart do Hotspot
 Name[pt_BR]=Restart do Hotspot
-Exec=roxterm -e "sudo service hotstop restart"
+Exec=$term -e "sudo service hotstop restart"
 Terminal=false
 StartupNotify=true
 Comment=Reinicia o hotspot
@@ -357,7 +407,7 @@ Type=Application
 Terminal=false
 Name=Altera o login do Hotspot
 Name[pt_BR]=Altera o login do Hotspot
-Exec=roxterm -e "bash -c /usr/share/Hotspot/HotspotLogin.sh"
+Exec=$term -e "bash -c /usr/share/Hotspot/HotspotLogin.sh"
 Terminal=false
 StartupNotify=true
 Comment=Altera o login do Hotspot
@@ -378,7 +428,7 @@ Type=Application
 Terminal=false
 Name=Finaliza o Hotspot
 Name[pt_BR]=Finaliza o Hotspot
-Exec=roxterm -e "sudo service hotstop stop"
+Exec=$term -e "sudo service hotstop stop"
 Terminal=false
 StartupNotify=true
 Comment=Finaliza o hotspot
