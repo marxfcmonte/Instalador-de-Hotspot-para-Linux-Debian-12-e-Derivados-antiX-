@@ -53,10 +53,32 @@ terminal() {
     done
 }
 
+display_principal(){
+	cont="$[${#texto} + 4]"
+	dialog --title "$titulo" --infobox "$texto" 3 $cont
+	sleep 2
+	clear
+}
+
+input_principal(){
+	cont="$[${#texto} + 4]"
+	nome=$(dialog --inputbox "$texto" 8 $cont --stdout)
+	validacao="$?"
+	clear
+}
+
+cancelar_principal(){
+	if [ "$validacao" = "1" ]; then
+		texto="Cancelado pelo usuário."
+		titulo="CANCELADO"
+		display_principal
+		exit 0
+	fi
+}
+
 if [ "$USER" != "root" ]; then
 	echo -e "Use comando 'sudo'  ou comando 'su'
 antes de inicializar o programa.\n"
-
 	exit 1
 fi
 if ! [ -e "/usr/bin/dialog" ]; then
@@ -64,96 +86,99 @@ if ! [ -e "/usr/bin/dialog" ]; then
 	sudo apt install -y dialog
 fi
 
+pasta_hotspot=/usr/share/Hotspot
+pasta_icones=/usr/share/pixmaps/hotspot
+
 terminal
 texto="Para a Distribuição Debian 12 e derivados (antiX 23)"
 cont="$[${#texto} + 4]"
 dialog --title "Desenvolvedor" --infobox "Desenvolvido por Marx F. C. Monte\n
 Instalador de Hotspot v 1.8 (2025)\n
 Para a Distribuição Debian 12 e derivados (antiX 23)" 5 $cont
-sleep 3
 clear
 conexoes=$(ifconfig -a | grep BROADCAST -c)
 if [ "$conexoes" -lt 2 ]; then
 	texto="Deve haver pelo menos 2 interfaces ativas (Ethernet e Wi-Fi)..."
-	cont="$[${#texto} + 4]"
-	dialog --title "ERRO" --infobox "$texto\nInstalação finalizada." 4 $cont
-	sleep 3
-	clear
+	tituto="ERRO"
+	display_principal
+	texto="Instalação finalizada."
+	tituto="ERRO"
+	display_principal
 	exit 1
 fi
 texto="SETAS PARA ESCOLHER E ENTER PARA CONFIRMAR"
 cont="$[${#texto} + 4]"
 opcao=$(dialog --title "MENU" --menu "$texto" 10 $cont 3 \
-"1" "PARA INSTALAR" \
-"2" "PARA REMOVER" \
-"3" "PARA SAIR" \
+"1" "INSTALAR" \
+"2" "REMOVER" \
+"3" "SAIR" \
 --stdout)
 clear
 case $opcao in
 	1)
 	texto="Instalação sendo iniciada..."
-	cont="$[${#texto} + 4]"
-	dialog --infobox "$texto" 3 $cont
-	interfaces=($(ifconfig -a | grep BROADCAST | cut -d ":" -f1))
-	ethe=${interfaces[0]}
-	wifi=${interfaces[1]}
-	sleep 5
-	texto="Nome da rede Wi-Fi (SSID)"
-	cont="$[${#texto} + 4]"
-	# Coloque '$cont' no lugar de '35' para ajuste automático de largura
-	rede=$(dialog --inputbox "$texto" 10 35 --stdout)
-	texto="Senha da rede Wi-Fi"
-	cont="$[${#texto} + 4]"
-	# Coloque '$cont' no lugar de '35' para ajuste automático de largura
-	senha=$(dialog --inputbox "$texto" 10 35 --stdout)
-	clear
-	if [ -z "$rede" -o -z "$senha" ]; then
-		texto="Nome da rede Wi-Fi (SSID) ou Senha da rede Wi-Fi não informados."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		exit 1
-	fi
-	if [ -e "/usr/share/Hotspot/install.conf" ]; then
+	display_principal
+	while true
+	do
+		interfaces=($(ifconfig -a | grep BROADCAST | cut -d ":" -f1))
+		ethe=${interfaces[0]}
+		wifi=${interfaces[1]}
+		tituto="NOME DA REDE"
+		texto="Nome da rede W-Fi (SSID)"
+		input_principal
+		cancelar_principal
+		rede=$nome
+		if [ -z "$rede" ]; then
+			texto="Nome da rede Wi-Fi (SSID) não informado."
+			titulo="ERRO"
+			display_principal
+		else
+			break
+		fi
+	done
+	while true
+	do
+		texto="Senha da rede Wi-Fi"
+		tituto="SENHA DA REDE"
+		input_principal
+		cancelar_principal
+		senha=$nome
+		if [ -z "$senha" ]; then
+			texto="Senha da rede Wi-Fi não informada."
+			titulo="ERRO"
+			display_principal
+		else
+			break
+		fi
+	done
+	if [ -e "$pasta_hotspot/install.conf" ]; then
 		texto="A instalação dos pacotes não será necessária..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="INSTALAÇÃO"
+		display_principal
 	else
 		apt update && apt upgrade -y
 		apt install -y hostapd dnsmasq wireless-tools iw tlp
 	fi
-	if [ -d "/usr/share/Hotspot" ]; then
+	if [ -d "$pasta_hotspot" ]; then
 		texto="O diretório Hotspot existe..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="INSTALAÇÃO"
+		display_principal
 	else
 		texto="O diretório Hotspot será criado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		mkdir /usr/share/Hotspot
+		titulo="INSTALAÇÃO"
+		display_principal
+		mkdir $pasta_hotspot
 	fi
-	if [ -e "/usr/share/Hotspot/install.conf" ]; then
+	if [ -e "$pasta_hotspot/install.conf" ]; then
 		texto="O arquivo install.conf existe..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="INSTALAÇÃO"
+		display_principal
 	else
 		texto="O arquivo install.conf será criado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		echo "Pacotes instalados hostapd dnsmasq\
-		 wireless-tools iw tlp." >\
-		/usr/share/Hotspot/install.conf
+		titulo="INSTALAÇÃO"
+		display_principal
+		echo "Pacotes instalados hostapd dnsmasq \
+wireless-tools iw tlp." > $pasta_hotspot/install.conf
 	fi
 	
 	if [ "$(echo "\$dns" | grep running)" ]; then
@@ -184,7 +209,6 @@ EOF
 	iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
 	iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 	echo '1' > /proc/sys/net/ipv4/ip_forward
-	chown $SUDO_USER:$SUDO_USER /etc/hostapd/hostapd.conf
 
 	cat <<EOF > /etc/hostapd/hostapd.conf
 interface=$wifi
@@ -202,20 +226,14 @@ wpa_group_rekey=600
 wpa_gmk_rekey=86400
 
 EOF
-	if [ -d "/usr/share/pixmaps/hotspot" ]; then
+	if [ -d "$pasta_icones" ]; then
 		texto="O diretório para os icones existe..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		display_principal
 	else
 		texto="O diretório para os icones será criado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		mkdir /usr/share/pixmaps/hotspot
-		cat <<EOF > /usr/share/Hotspot/hotspot_icones
+		display_principal
+		mkdir $pasta_icones
+		cat <<EOF > $pasta_hotspot/hotspot_icones
 https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-\
 para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/\
 connection.png
@@ -226,14 +244,15 @@ https://raw.githubusercontent.com/marxfcmonte/Instalador-de-Hotspot-\
 para-Linux-Debian-12-e-Derivados-antiX-/refs/heads/main/Icones/\
 hotspot2.png
 EOF
-		wget -i /usr/share/Hotspot/hotspot_icones -P /tmp/
-		mv /tmp/connection.png  /usr/share/pixmaps/hotspot
-		mv /tmp/hotspot.png /usr/share/pixmaps/hotspot
-		mv /tmp/hotspot2.png /usr/share/pixmaps/hotspot
+		wget -i $pasta_hotspot/hotspot_icones -P /tmp/
+		mv /tmp/connection.png  $pasta_icones
+		mv /tmp/hotspot.png $pasta_icones
+		mv /tmp/hotspot2.png $pasta_icones
 	fi
-	cat <<EOF > /usr/share/Hotspot/StartHotspot.sh
+	cat <<EOF > $pasta_hotspot/StartHotspot.sh
 #!$SHELL
 
+pasta_hotspot=/usr/share/Hotspot
 host="\$(service hostapd status)"
 dns="\$(service dnsmasq status)"
 if ! [ "\$(echo "\$host" | grep "not running")" ]; then
@@ -252,8 +271,7 @@ iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 service hostapd start
 service dnsmasq start
-echo -e "Hotspot\033[32m iniciado\033[0m..." >\
- /usr/share/Hotspot/hotspot.conf
+echo -e "Hotspot\033[32m iniciado\033[0m..." > \$pasta_hotspot/hotspot.conf
 
 exit 0
 
@@ -261,6 +279,7 @@ EOF
 	cat <<EOF > /usr/share/Hotspot/RStarHotspot.sh
 #!$SHELL
 
+pasta_hotspot=/usr/share/Hotspot
 host="\$(service hostapd status)"
 dns="\$(service dnsmasq status)"
 if ! [ "\$(echo "\$host" | grep "not running")" ]; then
@@ -279,29 +298,60 @@ iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 echo '1' > /proc/sys/net/ipv4/ip_forward
 service hostapd start
 service dnsmasq start
-echo -e "Hotspot\033[33;1m reiniciando\033[0m..." >\
- /usr/share/Hotspot/hotspot.conf
-cat /usr/share/Hotspot/hotspot.conf
+echo -e "Hotspot\033[33;1m reiniciando\033[0m..." > \$pasta_hotspot/hotspot.conf 
+cat \$pasta_hotspot/hotspot.conf
 sleep 5
-echo -e "Hotspot\033[32;1m reiniciado\033[0m..." >\
- /usr/share/Hotspot/hotspot.conf
-cat /usr/share/Hotspot/hotspot.conf
+echo -e "Hotspot\033[32;1m reiniciado\033[0m..." > \$pasta_hotspot/hotspot.conf
+cat \$pasta_hotspot/hotspot.conf
 sleep 5
 
 exit 0
 
 EOF
 	fim=EOF
-	cat <<EOF > /usr/share/Hotspot/HotspotLogin.sh
+	cat <<EOF > $pasta_hotspot/HotspotLogin.sh
 #!$SHELL
 
-senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
-if [ -z "\$senha" ]; then
-	dialog --title "ERRO" --infobox "A senha (SUDO) não foi digitada." 3 40
-	sleep 3
+display_principal(){
+	cont="\$[\${#texto} + 4]"
+	dialog --title "\$titulo" --infobox "\$texto" 3 \$cont
+	sleep 2
 	clear
-	exit 1
-fi
+}
+
+input_principal(){
+	cont="\$[\${#texto} + 14]"
+	nome=\$(dialog --inputbox "\$texto" 8 \$cont --stdout)
+	validacao="\$?"
+	clear
+}
+
+cancelar_principal(){
+	if [ "\$validacao" = "1" ]; then
+		texto="Cancelado pelo usuário."
+		display_principal
+		sudo chown root:root /etc/hostapd/hostapd.conf
+		sudo service hostapd start
+		sudo service dnsmasq start
+		exit 0
+	fi
+}
+
+
+pasta_hotspot=/usr/share/Hotspot
+while true
+do
+	senha=\$(dialog --title "AUTORIZAÇÃO" --passwordbox "Digite a senha (SUDO):" 8 40 --stdout)
+	validacao="\$?"
+	cancelar_principal
+	if [ -z "\$senha" ]; then
+		dialog --colors --title "\Zr\Z1  ERRO                               \Zn" --infobox "A senha (SUDO) não foi digitada." 3 37
+		sleep 2
+		clear
+	else
+		break
+	fi
+done
 clear
 host="\$(echo \$senha|sudo -S -p "" service hostapd status)"
 dns="\$(sudo service dnsmasq status)"
@@ -311,7 +361,7 @@ fi
 if [ "\$(echo "\$dns" | grep running)" ]; then
 	sudo service dnsmasq stop
 fi
-sudo chown $SUDO_USER:$SUDO_USER /etc/hostapd/hostapd.conf
+sudo chown \$USER:\$USER /etc/hostapd/hostapd.conf
 sudo sed -i 's#^DAEMON_CONF=.*#DAEMON_CONF=/etc/hostapd/hostapd.conf#' /etc/init.d/hostapd
 sudo ifconfig $wifi up
 sudo ifconfig $wifi 192.168.137.1/24
@@ -321,22 +371,32 @@ sudo iptables -t nat -A POSTROUTING -o $ethe -j MASQUERADE
 sudo iptables -A FORWARD -i $wifi -o $ethe -j ACCEPT
 sudo echo '1' > /proc/sys/net/ipv4/ip_forward
 clear
-rede=\$(dialog --inputbox "Nome da rede Wi-Fi (SSID)" 10 45 --stdout)
-clear
-senha=\$(dialog --inputbox "Senha da rede Wi-Fi" 10 45 --stdout)
-clear
-if [ -z "\$rede" -o -z "\$senha" ]; then
-	texto="Nome da rede Wi-Fi (SSID) ou Senha da rede Wi-Fi não informados."
-	cont="\$[\${#texto} + 4]"
-	dialog --infobox "\$texto" 3 \$cont
-	sleep 3
-	clear
-	sudo chown root:root /etc/hostapd/hostapd.conf
-	sudo service hostapd start
-	sudo service dnsmasq start
-	exit 1
-fi
-
+while true
+do
+	texto="Nome da rede Wi-Fi (SSID)"
+	input_principal
+	cancelar_principal
+	rede=\$nome
+	if [ -z "\$rede" ]; then
+		texto="Nome da rede Wi-Fi (SSID) não informado."
+		display_principal
+	else
+		break
+	fi
+done
+while true
+do
+	texto="Senha da rede Wi-Fi"
+	input_principal
+	cancelar_principal
+	senha=\$nome
+	if [ -z "\$senha" ]; then
+		texto="Senha da rede Wi-Fi não informada."
+		display_principal
+	else
+		break
+	fi
+done
 cat <<$fim > /etc/hostapd/hostapd.conf
 interface=$wifi
 driver=nl80211
@@ -359,8 +419,7 @@ $fim
 sudo chown root:root /etc/hostapd/hostapd.conf
 sudo service hostapd start
 sudo service dnsmasq start
-echo -e "Hotspot\033[32;1m reiniciado\033[0m..." >\
- /usr/share/Hotspot/hotspot.conf
+echo -e "Hotspot\033[32;1m reiniciado\033[0m..." > \$pasta_hotspot/hotspot.conf
 reset
 
 exit 0
@@ -370,10 +429,10 @@ EOF
 	cat <<EOF > /usr/share/Hotspot/StopHotspot.sh
 #!$SHELL
 
+pasta_hotspot=/usr/share/Hotspot
 service hostapd stop
 service dnsmasq stop
-echo -e "Hotspot\033[31;1m parado\033[0m..." >\
- /usr/share/Hotspot/hotspot.conf
+echo -e "Hotspot\033[31;1m parado\033[0m..." > \$pasta_hotspot/hotspot.conf
 
 exit 0
 
@@ -447,10 +506,8 @@ EOF
 	cp /usr/share/applications/StopHotspot.desktop /home/$SUDO_USER/Desktop
 	clear
 	texto="Os atalhos na Àrea de trabalho foram criados..."
-	cont="$[${#texto} + 4]"
-	dialog --infobox "$texto" 3 $cont
-	sleep 3
-	clear
+	titulo="INSTALAÇÃO"
+	display_principal
 	chmod +x /usr/share/Hotspot/*.sh /usr/share/applications/*.desktop
 	chmod 775 /home/$SUDO_USER/Desktop/*.desktop
 	chown $SUDO_USER:$SUDO_USER /home/$SUDO_USER/Desktop/*.desktop
@@ -476,16 +533,16 @@ EOF
 case "\$1" in
   start)
 	sleep 3
-	/usr/share/Hotspot/StartHotspot.sh
+	$pasta_hotspot/StartHotspot.sh
 	;;
   stop)
-	/usr/share/Hotspot/StopHotspot.sh
+	$pasta_hotspot/StopHotspot.sh
 	;;
   restart)
-	/usr/share/Hotspot/RStarHotspot.sh
+	$pasta_hotspot/RStarHotspot.sh
 	;;
   status)
-	cat /usr/share/Hotspot/hotspot.conf
+	cat $pasta_hotspot/hotspot.conf
 	;;
 esac
 
@@ -500,18 +557,14 @@ EOF
 	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
 	if [ "$?" = "1" ]; then
 		texto="As configurações serão atualizadas..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="INSTALAÇÃO"
+		display_principal
 		sed '/^$/d' /etc/sudoers > /tmp/temp.txt && mv /tmp/temp.txt /etc/sudoers
 		echo "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" >> /etc/sudoers
 	else
 		texto="As configurações estão atualizadas..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="INSTALAÇÃO"
+		display_principal
 	fi
 	clear
 	service hostapd start
@@ -521,192 +574,145 @@ EOF
 	desktop-menu --write-out-global
 	;;
 	2)
-	if [ -d "/usr/share/Hotspot" ]; then
+	if [ -d "$pasta_hotspot" ]; then
 		texto="O diretório Hotspot será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		service hotstop stop
 		update-rc.d hostapd remove
 		update-rc.d dnsmasq remove
 		update-rc.d hotstop remove
 		update-rc.d tlp remove
-		rm -rf /usr/share/Hotspot
+		rm -rf $pasta_hotspot
 		apt remove -y hostapd dnsmasq wireless-tools iw tlp
 		apt autoremove -y
 		clear
 	else
 		texto="O diretório Hotspot não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	fi
-	if [ -d "/usr/share/pixmaps/hotspot" ]; then
+	if [ -d "$pasta_icones" ]; then
 		texto="O diretório ../pixmaps/hotspot será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
-		rm -rf /usr/share/pixmaps/hotspot
+		titulo="DESINSTALAÇÃO"
+		display_principal
+		rm -rf $pasta_icones
 	else
 		texto="O diretório ../pixmaps/hotspot não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	fi
 	if [ -e "/etc/init.d/hotstop" ]; then
 		texto="O arquivo ../init.d/hotstop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		rm /etc/init.d/hotstop
 	else
 		texto="O arquivo ../init.d/hotstop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	fi
 	if [ -e "/usr/share/applications/RStarHotspot.desktop" ]; then
 		texto="O arquivo ../applications/RStarHotspot.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		rm /usr/share/applications/RStarHotspot.desktop
 	else
 		texto="O arquivo ../applications/RStarHotspot.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		display_principal
 	fi
 	if [ -e "/usr/share/applications/HotspotLogin.desktop" ]; then
 		texto="O arquivo ../applications/HotspotLogin.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		rm /usr/share/applications/HotspotLogin.desktop
 	else
 		texto="O arquivo ../applications/HotspotLogin.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	fi
 	if [ -e "/usr/share/applications/StopHotspot.desktop" ]; then
 		texto="O arquivo ../applications/StopHotspot.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		rm /usr/share/applications/StopHotspot.desktop
 	else
 		texto="O arquivo ../applications/StopHotspot.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/RStarHotspot.desktop" ]; then
 		texto="O arquivo ../Desktop/RStarHotspot.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		rm /home/$SUDO_USER/Desktop/RStarHotspot.desktop
 	else
 		texto="O arquivo ../Desktop/RStarHotspot.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/HotspotLogin.desktop" ]; then
 		texto="O arquivo ../Desktop/HotspotLogin.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		rm /home/$SUDO_USER/Desktop/HotspotLogin.desktop
 	else
 		texto="O arquivo ../Desktop/HotspotLogin.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	fi
 	if [ -e "/home/$SUDO_USER/Desktop/StopHotspot.desktop" ]; then
 		texto="O arquivo ../Desktop/StopHotspot.desktop será removido..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		rm /home/$SUDO_USER/Desktop/StopHotspot.desktop
 	else
 		texto="O arquivo ../Desktop/StopHotspot.desktop não encontrado..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	fi
 	if [ "$(cat "/etc/hostapd/hostapd.conf")" ]; then
 		texto="A configuração será removida em hostapd.conf..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		echo "" > /etc/hostapd/hostapd.conf
 	else
 		texto="Configuração não encontrada em hostapd.conf..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		clear
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	fi
 	cat /etc/sudoers | grep -q "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop"
 	if [ "$?" = "1" ]; then
 		texto="Configuração não encontrada em ../etc/sudoers..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		reset
+		titulo="DESINSTALAÇÃO"
+		display_principal
 	else
 		texto="A configuração será deletada em ../etc/sudoers..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
+		titulo="DESINSTALAÇÃO"
+		display_principal3
 		clear
 		awk -F "$SUDO_USER ALL=NOPASSWD: /etc/init.d/hotstop" '{print $1}' /etc/sudoers > /tmp/temp.txt
 		mv /tmp/temp.txt /etc/sudoers
+		sed '/^$/d' /etc/sudoers > /tmp/temp.conf && mv /tmp/temp.conf /etc/sudoers
 		texto="Configuração foi removida ../etc/sudoers..."
-		cont="$[${#texto} + 4]"
-		dialog --infobox "$texto" 3 $cont
-		sleep 3
-		reset
+		titulo="DESINSTALAÇÃO"
+		display_principal
 		desktop-menu --write-out-global
 	fi
+	reset
 	;;
 	3)
 	texto="Saindo do instalador..."
-	cont="$[${#texto} + 4]"
-	dialog --infobox "$texto" 3 $cont
-	sleep 3
-	reset
+	titulo="SAINDO"
+	display_principal
 	;;
 	*)
 	texto="Instalação cancelada..."
-	cont="$[${#texto} + 4]"
-	dialog --infobox "$texto" 3 $cont
-	sleep 3
-	reset
-	exit 1
+	titulo="CANCELADO"
+	display_principal
 	;;
 esac
+
+reset
 
 exit 0
